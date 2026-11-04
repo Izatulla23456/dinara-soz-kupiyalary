@@ -1,0 +1,1327 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Сөз құпиялары</title><meta name="claude:viewport-fit-sides" content="cover"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;700;800&family=Manrope:wght@500;600;700&display=swap&subset=cyrillic,cyrillic-ext"><style>/* Көрініс: толық экранды 3D зал үстіндегі шыны-неон интерфейс */
+:root {
+  --bg: #040a22; --panel: rgba(8, 24, 82, .84); --panel-solid: #0a1d66; --line: #4cc6ff; --line-soft: rgba(100, 190, 255, .35);
+  --ink: #eaf6ff; --muted: #9db8e8; --neon: #38b6ff; --gold: #ffcf4a; --good: #4dffb0; --bad: #ff6a8a;
+  --f-display: "Exo 2", "Segoe UI", "Trebuchet MS", Arial, sans-serif; --f-body: "Manrope", "Segoe UI", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; -webkit-tap-highlight-color: transparent; }
+body { padding-left: 0; padding-right: 0; }
+#app { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+#cam { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+button:disabled { cursor: default; }
+
+/* HUD */
+#hud { position: absolute; inset: 0; pointer-events: none; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+#hud > * { pointer-events: auto; }
+.hud-top { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; pointer-events: none; }
+.hud-top > * { pointer-events: auto; }
+.stats { display: flex; gap: 14px; align-items: center; padding: 8px 14px; background: var(--panel); border: 1px solid var(--line-soft); border-radius: 14px; backdrop-filter: blur(8px); }
+.stats .brand { font-family: var(--f-display); font-weight: 800; letter-spacing: .02em; color: #fff; font-size: 15px; white-space: nowrap; }
+.stat { display: flex; flex-direction: column; line-height: 1.1; }
+.stat small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.stat b { font-family: var(--f-display); font-size: 17px; font-variant-numeric: tabular-nums; }
+.stat.rank b { color: var(--gold); font-size: 14px; }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.tool { padding: 10px 14px; min-height: 44px; background: var(--panel); border: 1px solid var(--line-soft); border-radius: 12px; font-weight: 700; backdrop-filter: blur(8px); }
+.tool:hover { border-color: var(--line); box-shadow: 0 0 14px rgba(56, 182, 255, .45); }
+#prompt { position: absolute; left: 50%; bottom: calc(110px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); padding: 14px 24px; min-height: 48px; max-width: calc(100% - 32px); background: rgba(10, 40, 130, .9); border: 2px solid var(--line); border-radius: 999px; font-family: var(--f-display); font-weight: 700; font-size: 18px; color: #fff; box-shadow: 0 0 24px rgba(56, 182, 255, .6); animation: pulse 1.8s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 36px rgba(56, 182, 255, .95); } }
+#joy { position: absolute; width: 110px; height: 110px; margin: -55px 0 0 -55px; border: 2px solid var(--line-soft); border-radius: 50%; background: rgba(40, 120, 255, .12); pointer-events: none !important; }
+#joyKnob { position: absolute; left: 35px; top: 35px; width: 40px; height: 40px; border-radius: 50%; background: rgba(120, 210, 255, .7); box-shadow: 0 0 14px var(--neon); }
+#toast { position: absolute; left: 50%; top: calc(76px + env(safe-area-inset-top, 0px)); transform: translate(-50%, -8px); max-width: min(560px, calc(100% - 32px)); padding: 12px 18px; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 12px; text-align: center; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none !important; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+#exitMode { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); z-index: 30; padding: 10px 18px; min-height: 44px; background: var(--panel-solid); border: 1px solid var(--gold); border-radius: 12px; font-weight: 800; color: var(--gold); }
+#app.stereo #hud { display: none; }
+#app.ar #hud .hud-top .brand, #app.ar #hud .stat.rank { display: none; }
+
+/* Экран-қабаттар */
+.screen { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: radial-gradient(ellipse at 50% 40%, rgba(5, 12, 50, .55), rgba(3, 6, 28, .92)); overflow-y: auto; }
+.card { width: min(640px, 100%); margin: auto; padding: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 0 40px rgba(56, 182, 255, .35), inset 0 0 40px rgba(40, 100, 255, .12); backdrop-filter: blur(10px); }
+.eyebrow { margin: 0 0 8px; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--neon); font-weight: 800; }
+h1 { margin: 0 0 6px; font-family: var(--f-display); font-weight: 800; font-size: clamp(30px, 6vw, 46px); line-height: 1.05; text-wrap: balance; text-shadow: 0 0 22px rgba(56, 182, 255, .8); }
+h1 span { display: block; font-size: .56em; color: var(--neon); font-weight: 700; margin-top: 8px; text-shadow: none; }
+.card p { line-height: 1.55; margin: 12px 0; }
+.card .hint { color: var(--muted); font-size: 14px; }
+.keys { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 14px 0 20px; font-size: 14px; color: var(--muted); }
+.keys b { color: #fff; border: 1px solid var(--line-soft); border-radius: 6px; padding: 1px 7px; margin-right: 4px; font-family: var(--f-display); }
+.btn { padding: 12px 20px; min-height: 48px; background: rgba(20, 70, 190, .45); border: 1px solid var(--line); border-radius: 12px; font-weight: 700; }
+.btn:hover:not(:disabled) { box-shadow: 0 0 16px rgba(56, 182, 255, .6); }
+.btn.primary { background: linear-gradient(180deg, #2d8bff, #1654d6); border-color: #9fe0ff; color: #fff; font-family: var(--f-display); font-size: 18px; }
+.btn.ghost { background: transparent; }
+.btn:disabled { opacity: .4; box-shadow: none; }
+
+/* Drawer */
+.drawer { position: absolute; z-index: 15; top: calc(64px + env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); width: min(380px, calc(100% - 32px)); max-height: calc(100% - 90px - env(safe-area-inset-top, 0px)); overflow-y: auto; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; backdrop-filter: blur(12px); box-shadow: 0 0 30px rgba(56, 182, 255, .3); }
+.drawer h2 { margin: 0 0 12px; font-family: var(--f-display); font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
+.icon-btn { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line-soft); background: transparent; font-size: 22px; line-height: 1; }
+#cases-list, .modes-list { display: flex; flex-direction: column; gap: 8px; }
+.case, .mode { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; min-height: 56px; text-align: left; background: rgba(20, 70, 190, .3); border: 1px solid var(--line-soft); border-radius: 12px; }
+.case:hover:not(:disabled), .mode:hover:not(:disabled) { border-color: var(--line); }
+.case .no { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: hsl(var(--h), 100%, 62%); color: #04123c; font-family: var(--f-display); font-weight: 800; }
+.case.done .no { background: var(--gold); }
+.case .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.case small, .mode small { color: var(--muted); font-size: 13px; }
+.case.locked { opacity: .55; }
+.mode { flex-direction: column; align-items: flex-start; gap: 2px; }
+.mode b { font-family: var(--f-display); }
+.mode.on { border-color: var(--good); }
+.mode:disabled { opacity: .45; }
+.muted { color: var(--muted); font-size: 14px; margin: 8px 2px 0; }
+.star { width: 26px; height: 26px; fill: rgba(255, 255, 255, .2); }
+.star.on { fill: var(--gold); filter: drop-shadow(0 0 6px rgba(255, 207, 74, .8)); }
+.star.sm { width: 16px; height: 16px; }
+
+/* Викторина */
+#quiz { position: absolute; z-index: 18; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding: 12px max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+#quiz[hidden] { display: none; }
+.q-card { pointer-events: auto; width: min(760px, 100%); max-height: calc(100% - 24px); overflow-y: auto; padding: 20px 22px; background: rgba(6, 20, 74, .93); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 0 40px rgba(56, 182, 255, .45); backdrop-filter: blur(10px); }
+.q-card.result { text-align: center; }
+.q-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.q-eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--neon); margin: 0; }
+.q-dots { display: flex; gap: 6px; margin-left: auto; }
+.q-dots i { width: 22px; height: 6px; border-radius: 3px; background: rgba(150, 200, 255, .25); }
+.q-dots i.done { background: var(--good); } .q-dots i.cur { background: var(--neon); box-shadow: 0 0 8px var(--neon); }
+.q-prompt { font-family: var(--f-display); font-weight: 700; font-size: clamp(19px, 3.4vw, 24px); line-height: 1.3; margin: 8px 0 16px; text-wrap: balance; }
+.opts { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+.opt, .tok, .chip { padding: 13px 16px; min-height: 52px; background: rgba(20, 70, 190, .4); border: 1px solid var(--line-soft); border-radius: 12px; font-weight: 600; font-size: 17px; text-align: left; }
+.opt:hover:not(:disabled), .tok:hover:not(:disabled), .chip:hover:not(:disabled) { border-color: var(--line); background: rgba(40, 110, 240, .55); }
+.opt.ok, .tok.ok { border-color: var(--good); background: rgba(40, 200, 130, .28); }
+.opt.bad, .tok.bad { border-color: var(--bad); background: rgba(255, 70, 110, .22); }
+.chip.used { opacity: .3; }
+.sentence { font-size: 20px; line-height: 2.5; margin: 6px 0 4px; }
+.tok { display: inline-block; min-height: 44px; padding: 6px 12px; font-size: 20px; }
+.slots { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.slots b { color: var(--muted); }
+.slot { min-width: 84px; min-height: 52px; padding: 10px 14px; display: inline-grid; place-items: center; border: 2px dashed var(--line-soft); border-radius: 12px; font-weight: 700; font-size: 18px; }
+.slot.full { border-style: solid; border-color: var(--neon); background: rgba(40, 110, 240, .35); }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.q-hint { color: #ffe28a; margin: 12px 0 0; }
+.q-fb { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; font-weight: 600; }
+.q-fb.ok { background: rgba(40, 200, 130, .18); color: #aaffd8; } .q-fb.bad { background: rgba(255, 70, 110, .15); color: #ffc0cf; }
+.q-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.q-foot .primary { margin-left: auto; }
+.stars { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
+.stars .star { width: 44px; height: 44px; }
+.q-score { font-family: var(--f-display); font-size: 28px; font-weight: 800; margin: 4px 0; }
+#loading { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; background: var(--bg); font-family: var(--f-display); font-size: 22px; letter-spacing: .06em; }
+
+@media (max-width: 560px) {
+  .opts { grid-template-columns: 1fr; }
+  .stats { gap: 10px; padding: 6px 10px; } .stats .brand { display: none; }
+  .tool { padding: 8px 10px; font-size: 14px; }
+  .card { padding: 20px; }
+  #prompt { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); font-size: 16px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .q-card { padding: 12px 16px; } .q-prompt { margin: 4px 0 8px; font-size: 18px; }
+  .opts { grid-template-columns: 1fr 1fr; gap: 6px; } .opt { min-height: 44px; padding: 8px 12px; }
+}
+@media (prefers-reduced-motion: reduce) { #prompt { animation: none; } #toast { transition: none; } }
+</style><div id="app">
+  <video id="cam" playsinline muted hidden></video>
+  <canvas id="gl" tabindex="0" aria-label="3D морфология залы"></canvas>
+  <div id="hud">
+    <div class="hud-top">
+      <div class="stats">
+        <span class="brand">Сөз құпиялары</span>
+        <span class="stat"><small>Фрагмент</small><b id="hud-frag">0 / 9</b></span>
+        <span class="stat"><small>Ұпай</small><b id="hud-score">0</b></span>
+        <span class="stat rank"><small>Дәреже</small><b id="hud-rank">Жас тергеуші</b></span>
+      </div>
+      <div class="tools">
+        <button class="tool" data-open="cases">Істер</button>
+        <button class="tool" data-open="modes">VR · AR · Гироскоп</button>
+        <button class="tool" id="fsBtn" aria-label="Толық экран">Толық экран</button>
+      </div>
+    </div>
+    <button id="prompt" hidden></button>
+    <div id="joy" hidden><div id="joyKnob"></div></div>
+  </div>
+  <div id="toast" role="status"></div>
+  <button id="exitMode" hidden>Шығу</button>
+
+  <section id="quiz" hidden></section>
+
+  <aside id="cases" class="drawer" hidden>
+    <h2>Істер тізімі <button class="icon-btn" data-close aria-label="Жабу">&times;</button></h2>
+    <div id="cases-list"></div>
+  </aside>
+  <aside id="modes" class="drawer" hidden>
+    <h2>Режимдер <button class="icon-btn" data-close aria-label="Жабу">&times;</button></h2>
+    <div class="modes-list">
+      <button class="mode" id="m-gyro"><b>Гироскоп</b><small>Телефонды бұрып қараңыз</small></button>
+      <button class="mode" id="m-card"><b>VR · Cardboard</b><small>Телефон + көзілдірік</small></button>
+      <button class="mode" id="m-vr"><b>VR · WebXR</b><small>Тексерілуде</small></button>
+      <button class="mode" id="m-ar"><b>AR</b><small>Тексерілуде</small></button>
+      <button class="mode" id="m-sound"><b>Дыбыс</b><small>Қосулы</small></button>
+    </div>
+    <p class="muted">Гироскоп, VR және AR үшін ойын файлын телефонда HTTPS арқылы ашыңыз.</p>
+  </aside>
+
+  <section id="intro" class="screen">
+    <div class="card">
+      <p class="eyebrow">Морфология орталығы</p>
+      <h1>Сөз құпиялары<span>Морфология детективі</span></h1>
+      <p id="story"></p>
+      <div class="keys"><span><b>WASD</b>жүру</span><span><b>Тінтуір</b>қарау</span><span><b>E</b>әрекет</span><span><b>C</b>істер</span><span><b>M</b>режимдер</span></div>
+      <button class="btn primary" id="startBtn">Тергеуді бастау</button>
+      <p class="hint">Телефонда: сол жақ жарты экран — жүру, оң жағы — қарау, түрту — таңдау.</p>
+    </div>
+  </section>
+
+  <section id="end" class="screen" hidden>
+    <div class="card" style="text-align:center">
+      <p class="eyebrow">Іс жабылды</p>
+      <h1>Сөз кітабы қалпына келді</h1>
+      <p>Сіздің дәрежеңіз: <b id="end-rank"></b></p>
+      <p class="q-score" id="end-score"></p>
+      <div class="row" style="justify-content:center"><button class="btn" id="againBtn">Залға оралу</button><button class="btn primary" id="resetBtn">Қайта бастау</button></div>
+    </div>
+  </section>
+  <div id="loading">Зал жүктелуде…</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script>/* ===== Контент: істер (сөз таптары) және финал ===== */
+const CASES = [
+  { id: 'noun', name: 'Зат есім', sample: 'кітап', ask: 'Кім? Не?', hue: 196,
+    intro: 'Сөрелерден заттардың аттары жоғалды. «Кім? Не?» деген сұрақтың ізімен жүр.',
+    qs: [
+      { t: 'mc', q: 'Зат есім қандай сұрақтарға жауап береді?', o: ['Кім? Не?', 'Қандай? Қай?', 'Қанша? Нешеу?', 'Не істеді? Не етті?'], a: 0,
+        h: 'Зат есім адамның, заттың, құбылыстың атын білдіреді.', e: 'Зат есім заттың атын білдіреді: кім? не?' },
+      { t: 'word', q: 'Сөйлемнен «кім?» деген сұраққа жауап беретін зат есімді тап.', s: 'Мұғалім сыныпқа кірді.', a: ['Мұғалім'],
+        h: 'Кім кірді? Адамның атын айтатын сөзді іздеп көр.', e: '«Мұғалім» адамның атауы, «кім?» сұрағына жауап береді.' },
+      { t: 'mc', q: 'Қай қатарда тек зат есімдер берілген?', o: ['кітап, дала, дос', 'ақ, биік, жылдам', 'жүр, оқы, жаз', 'мен, сен, ол'], a: 0,
+        h: 'Басқа қатарларда сын есім, етістік және есімдік бар.', e: 'Кітап, дала, дос — заттың аттары.' }
+    ] },
+  { id: 'adj', name: 'Сын есім', sample: 'көк', ask: 'Қандай? Қай?', hue: 204,
+    intro: 'Сөздердің түсі мен сапасы өшіп барады. «Қандай?» деген сұрақты тап.',
+    qs: [
+      { t: 'mc', q: 'Сын есім нені білдіреді?', o: ['Заттың сынын, сапасын, түсін', 'Заттың санын', 'Іс-қимылды', 'Заттың атын'], a: 0,
+        h: 'Қандай? деген сұраққа жауап береді.', e: 'Сын есім заттың сынын, түсін, сапасын білдіреді.' },
+      { t: 'word', q: 'Сөйлемнен «қандай?» деген сұраққа жауап беретін сөзді тап (екеуінің бірін таңдауға болады).', s: 'Биік тауда ақ қар жатыр.', a: ['Биік', 'ақ'],
+        h: 'Қандай тау? Қандай қар?', e: '«Биік» пен «ақ» заттың сынын білдіреді.' },
+      { t: 'mc', q: 'Қай сөз сын есім?', o: ['тәтті', 'кітап', 'жазды', 'бес'], a: 0,
+        h: 'Қандай алма? — ...', e: '«Тәтті» заттың дәмін білдіреді: қандай? — тәтті.' }
+    ] },
+  { id: 'num', name: 'Сан есім', sample: 'бес', ask: 'Қанша? Нешеу?', hue: 212,
+    intro: 'Санақ бұзылған: біреу сандарды араластырып жіберді.',
+    qs: [
+      { t: 'mc', q: 'Сан есім қандай сұрақтарға жауап береді?', o: ['Қанша? Нешеу? Нешінші?', 'Кім? Не?', 'Қандай?', 'Қайда? Қашан?'], a: 0,
+        h: 'Сан есім санды, мөлшерді, ретті білдіреді.', e: 'Сан есім санды, ретті білдіреді: қанша? нешінші?' },
+      { t: 'word', q: 'Сөйлемдегі сан есімді тап.', s: 'Сыныпта жиырма оқушы бар.', a: ['жиырма'],
+        h: 'Қанша оқушы бар?', e: '«Жиырма» — есептік сан есім.' },
+      { t: 'mc', q: '«Нешінші?» деген сұраққа жауап беретін сөзді тап.', o: ['үшінші', 'үш', 'үшеу', 'жүз'], a: 0,
+        h: 'Реттік сан есім -ыншы, -інші жұрнақтарымен жасалады.', e: '«Үшінші» — реттік сан есім.' }
+    ] },
+  { id: 'pron', name: 'Есімдік', sample: 'мен', ask: 'Кім? Не? Қайсы?', hue: 220,
+    intro: 'Біреу есімдердің орнына жүріп, ізін жасырып жатыр.',
+    qs: [
+      { t: 'mc', q: 'Есімдік не істейді?', o: ['Зат, сын, сан есімнің орнына жүреді', 'Іс-қимылды білдіреді', 'Дыбысқа еліктейді', 'Сөздерді байланыстырады'], a: 0,
+        h: 'Есімдік — есімнің орнына жүретін сөз.', e: 'Есімдік зат, сын, сан есімнің орнына жүреді: мен, сен, ол.' },
+      { t: 'word', q: 'Сөйлемдегі есімдіктердің бірін тап (екеуінің бірін таңдауға болады).', s: 'Ол маған кітап берді.', a: ['Ол', 'маған'],
+        h: 'Мен, сен, ол сөздерін еске түсір.', e: '«Ол» — жіктеу есімдігі, «маған» — «мен» есімдігінің барыс септіктегі түрі.' },
+      { t: 'mc', q: 'Қай сөз сұрау есімдігі?', o: ['кім', 'мен', 'біз', 'сол'], a: 0,
+        h: 'Сұрақ қоятын сөз.', e: '«Кім?» — сұрау есімдігі.' }
+    ] },
+  { id: 'verb', name: 'Етістік', sample: 'жүр', ask: 'Не істеді?', hue: 226,
+    intro: 'Іс-қимыл тоқтап қалды. «Не істеді?» деген сұрақ — басты із.',
+    qs: [
+      { t: 'mc', q: 'Етістік қандай сұраққа жауап береді?', o: ['Не істеді? Не істейді?', 'Кім? Не?', 'Қандай?', 'Қанша?'], a: 0,
+        h: 'Етістік іс-қимылды білдіреді.', e: 'Етістік іс-қимылды білдіреді: не істеді? не істейді?' },
+      { t: 'word', q: 'Сөйлемдегі етістікті тап.', s: 'Бала хат жазды.', a: ['жазды'],
+        h: 'Бала не істеді?', e: '«Жазды» — не істеді? деген сұраққа жауап береді.' },
+      { t: 'mc', q: 'Қай сөз етістік?', o: ['оқиды', 'оқушы', 'оқулық', 'оқшау'], a: 0,
+        h: 'Не істейді? — ...', e: '«Оқиды» — іс-қимылды білдіреді.' }
+    ] },
+  { id: 'adv', name: 'Үстеу', sample: 'ерте', ask: 'Қалай? Қашан? Қайда?', hue: 232,
+    intro: 'Қимылдың қалай, қашан, қайда болғаны жойылған.',
+    qs: [
+      { t: 'mc', q: 'Үстеу қандай сұрақтарға жауап береді?', o: ['Қалай? Қашан? Қайда?', 'Кім? Не?', 'Қандай?', 'Қанша?'], a: 0,
+        h: 'Үстеу іс-қимылдың мезгілін, мекенін, амалын көрсетеді.', e: 'Үстеу іс-қимылдың белгісін білдіреді: қалай? қашан? қайда?' },
+      { t: 'word', q: 'Іс-қимылдың қашан болғанын білдіретін үстеуді тап.', s: 'Ол үйге ерте келді.', a: ['ерте'],
+        h: 'Қашан келді?', e: '«Ерте» — мезгіл үстеуі.' },
+      { t: 'mc', q: 'Қай сөз үстеу?', o: ['бүгін', 'кітап', 'қызыл', 'жазады'], a: 0,
+        h: 'Қашан? деген сұраққа жауап береді.', e: '«Бүгін» — уақытты білдіретін үстеу.' }
+    ] },
+  { id: 'part', name: 'Шылау', sample: 'және', ask: 'Байланыстырады', hue: 240,
+    intro: 'Сөздер бір-бірімен байланысын жоғалтты. Шылау — жасырын көпір.',
+    qs: [
+      { t: 'mc', q: 'Шылау дегеніміз не?', o: ['Сөздерді немесе сөйлемдерді байланыстыратын көмекші сөз', 'Заттың атын білдіретін сөз', 'Дыбысқа еліктейтін сөз', 'Сезімді білдіретін сөз'], a: 0,
+        h: 'Шылау өз алдына сұраққа жауап бермейді.', e: 'Шылау сөздерді байланыстырады, сөзге қосымша мағына қосады.' },
+      { t: 'word', q: 'Екі есімді байланыстырып тұрған шылауды тап.', s: 'Асан және Үсен мектепке барды.', a: ['және'],
+        h: 'Асан мен Үсенді қосып тұрған сөз.', e: '«Және» — жалғаулық шылау.' },
+      { t: 'mc', q: 'Қай сөз шылау?', o: ['үшін', 'үй', 'көк', 'келді'], a: 0,
+        h: 'Мектеп ..., сен ... дегендегі сөз.', e: '«Үшін» — септеулік шылау.' }
+    ] },
+  { id: 'imit', name: 'Еліктеуіш сөз', sample: 'тарс', ask: 'Дыбыс, қимыл', hue: 248,
+    intro: 'Дыбыстар мен қимылдың жаңғырығы сөздерден бөлініп кетті.',
+    qs: [
+      { t: 'mc', q: 'Еліктеуіш сөздер нені білдіреді?', o: ['Дыбыстарға, қимылдарға, бейнелерге еліктеуді', 'Заттың атын', 'Санды', 'Сөздердің байланысын'], a: 0,
+        h: 'Табиғаттағы дыбыстар мен қимылдарды айтып береді.', e: 'Еліктеуіш сөздер дыбысқа, қимылға, бейнеге еліктейді.' },
+      { t: 'word', q: 'Сөйлемдегі еліктеуіш сөзді тап.', s: 'Түнде есік қатты тарс етті.', a: ['тарс'],
+        h: 'Есіктің шығарған дыбысы.', e: '«Тарс» — дыбысқа еліктеуіш сөз.' },
+      { t: 'mc', q: 'Қай сөз еліктеуіш?', o: ['сатыр-сұтыр', 'сабақ', 'сары', 'сан'], a: 0,
+        h: 'Аяқ дыбысына ұқсайтын қос сөз.', e: '«Сатыр-сұтыр» — дыбысқа еліктеуіш сөз.' }
+    ] },
+  { id: 'intj', name: 'Одағай', sample: 'ой', ask: 'Сезім, көңіл-күй', hue: 256,
+    intro: 'Залда бір үн естілді. Сезімге толы сөз қайсысы?',
+    qs: [
+      { t: 'mc', q: 'Одағай нені білдіреді?', o: ['Адамның сезімін, көңіл-күйін', 'Заттың санын', 'Заттың сынын', 'Іс-қимылдың орындалу жолын'], a: 0,
+        h: 'Қуаныш, таңдану, қорқыныш сияқты сезімдер.', e: 'Одағай сезімді, көңіл-күйді білдіреді.' },
+      { t: 'word', q: 'Сөйлемдегі одағайды тап.', s: 'Ой, қандай әдемі гүл!', a: ['Ой'],
+        h: 'Таңданысты білдіретін сөз.', e: '«Ой» — таңдануды білдіретін одағай.' },
+      { t: 'mc', q: 'Қай сөз одағай?', o: ['Апырай', 'Алма', 'Ақ', 'Ауыл'], a: 0,
+        h: 'Таңғалғанда айтатын сөз.', e: '«Апырай» — таңдануды білдіреді.' }
+    ] }
+];
+
+/* Финал: сөздің құрылымы мен грамматикалық категориялар */
+const FINAL = { id: 'final', name: 'Сөз кітабы', sample: 'сөз', ask: 'Түбір + қосымша', hue: 45,
+  intro: 'Барлық фрагменттер жиналды. Сөздің құрылымын талдап, «Сөз кітабын» қалпына келтір.',
+  qs: [
+    { t: 'mc', q: '«кітаптарымыздан» сөзін дұрыс бөліңіз.', o: ['кітап + тар + ымыз + дан', 'кіт + аптар + ымыз + дан', 'кітапта + рым + ыз + дан', 'кітап + тары + мыз + дан'], a: 0,
+      h: 'Түбір — кітап. Кейін көптік, тәуелдік, септік жалғаулары келеді.', e: 'Реті: түбір + көптік + тәуелдік + септік.' },
+    { t: 'mc', q: '«кітаптарымыздан» сөзіндегі «-ымыз» қандай жалғау?', o: ['Тәуелдік жалғауы (І жақ, көпше)', 'Көптік жалғауы', 'Жіктік жалғауы', 'Септік жалғауы'], a: 0,
+      h: 'Кімдікі? — біздікі.', e: '«-ымыз» — І жақ көпше тәуелдік жалғауы: біздің кітаптарымыз.' },
+    { t: 'mc', q: '«кітаптарымыздан» сөзіндегі «-дан» қандай септіктің жалғауы?', o: ['Шығыс септік', 'Барыс септік', 'Ілік септік', 'Жатыс септік'], a: 0,
+      h: 'Қайдан? деген сұраққа жауап береді.', e: '«-дан» — шығыс септіктің жалғауы: қайдан?' },
+    { t: 'mc', q: 'Қай қосымша жаңа мағыналы сөз жасайды?', o: ['Жұрнақ', 'Көптік жалғау', 'Септік жалғау', 'Тәуелдік жалғау'], a: 0,
+      h: 'Жалғау сөздің формасын өзгертеді, ал ...', e: 'Жұрнақ жаңа сөз жасайды (балық + шы = балықшы), жалғау сөзді өзгертеді.' },
+    { t: 'build', q: 'Сөзді жина: дос + көптік + тәуелдік (І жақ, көпше) + барыс септік.', target: 'достарымызға', parts: ['дос', 'тар', 'ымыз', 'ға'], chips: ['ға', 'дос', 'лар', 'ымыз', 'тар', 'қа'],
+      h: 'Дос → -тар → -ымыз → -ға.', e: 'дос + тар + ымыз + ға = достарымызға.' },
+    { t: 'build', q: 'Сөзді жина: мектеп + көптік + тәуелдік (І жақ, көпше) + ілік септік.', target: 'мектептеріміздің', parts: ['мектеп', 'тер', 'іміз', 'дің'], chips: ['тің', 'іміз', 'мектеп', 'лер', 'дің', 'тер'],
+      h: 'Мектеп → -тер → -іміз → -дің.', e: 'мектеп + тер + іміз + дің = мектептеріміздің.' }
+  ] };
+
+const STORY = 'Морфология орталығындағы «Сөз кітабы» жоғалды: сөздердің пішіні мен мағынасы бұзылған. Сен — Морфология детективісің. Залды аралап, тоғыз істі шеш, кілт фрагменттерін жина, содан кейін орталықтағы кітапты қалпына келтір.';
+const RANKS = [[0.8, 'Бас детектив'], [0.55, 'Тәжірибелі детектив'], [0, 'Жас тергеуші']];
+
+/* ===== Canvas-текстуралар: голографиялық панельдер, едендер, туы ===== */
+const FD = '"Exo 2","Segoe UI","Trebuchet MS",Arial,sans-serif';
+const FB = '"Manrope","Segoe UI",Arial,sans-serif';
+const hsl = (h, s, l, a) => (a === undefined ? `hsl(${h},${s}%,${l}%)` : `hsla(${h},${s}%,${l}%,${a})`);
+
+function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function mkTex(c) {
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;
+  return t;
+}
+function rr(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function wrapText(ctx, text, x, y, maxW, lh, align) {
+  const words = text.split(' '); let line = '';
+  ctx.textAlign = align || 'left';
+  for (let i = 0; i < words.length; i++) {
+    const test = line ? line + ' ' + words[i] : words[i];
+    if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, y); line = words[i]; y += lh; } else line = test;
+  }
+  if (line) { ctx.fillText(line, x, y); y += lh; }
+  return y;
+}
+function neonStroke(ctx, hue, w, blur) {
+  ctx.shadowColor = hsl(hue, 100, 62); ctx.shadowBlur = blur || 18; ctx.lineWidth = w || 4; ctx.strokeStyle = hsl(hue, 100, 72); ctx.stroke(); ctx.shadowBlur = 0;
+}
+function panelBase(ctx, w, h, hue, r) {
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, 'rgba(10,44,130,0.90)'); g.addColorStop(1, 'rgba(4,16,70,0.93)');
+  rr(ctx, 14, 14, w - 28, h - 28, r || 30); ctx.fillStyle = g; ctx.fill();
+  ctx.save(); rr(ctx, 14, 14, w - 28, h - 28, r || 30); ctx.clip();
+  ctx.strokeStyle = 'rgba(120,200,255,0.05)'; ctx.lineWidth = 1;
+  for (let y = 20; y < h; y += 6) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  ctx.restore();
+  rr(ctx, 14, 14, w - 28, h - 28, r || 30); neonStroke(ctx, hue || 205, 4, 22);
+}
+function bookIcon(ctx, cx, cy, s, col) {
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s); ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(0, -14); ctx.quadraticCurveTo(-14, -22, -30, -16); ctx.lineTo(-30, 18); ctx.quadraticCurveTo(-14, 12, 0, 20);
+  ctx.quadraticCurveTo(14, 12, 30, 18); ctx.lineTo(30, -16); ctx.quadraticCurveTo(14, -22, 0, -14); ctx.moveTo(0, -14); ctx.lineTo(0, 20); ctx.stroke();
+  ctx.lineWidth = 2; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-24, -8 + i * 7); ctx.lineTo(-6, -6 + i * 7); ctx.moveTo(24, -8 + i * 7); ctx.lineTo(6, -6 + i * 7); ctx.stroke(); }
+  ctx.restore();
+}
+function starPath(ctx, cx, cy, R, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rad = i % 2 ? r : R; ctx.lineTo(cx + Math.cos(a) * rad, cy + Math.sin(a) * rad); }
+  ctx.closePath();
+}
+
+/* ---- Брифинг панельдері (суреттегі мәтіндер) ---- */
+function drawBriefLeft(c) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  panelBase(ctx, w, h, 205);
+  bookIcon(ctx, 92, 96, 1.5, '#9fe0ff');
+  ctx.fillStyle = '#fff'; ctx.font = `700 64px ${FD}`; ctx.textAlign = 'left'; ctx.fillText('Морфология', 160, 118);
+  ctx.strokeStyle = 'rgba(130,210,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(50, 160); ctx.lineTo(w - 50, 160); ctx.stroke();
+  ctx.fillStyle = '#d8efff'; ctx.font = `500 36px ${FB}`;
+  wrapText(ctx, 'Морфология (грекше morphe — пішін, форма және logos — ілім сөздерінен шыққан) — тіл білімінің сөздердің грамматикалық мағыналарын, сөз таптарын, олардың өзгеру жүйесін және сөз тудыру тәсілдерін зерттейтін саласы.', 52, 226, w - 104, 52);
+}
+function drawBriefCenter(c) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  panelBase(ctx, w, h, 205);
+  ctx.fillStyle = '#fff'; ctx.font = `700 50px ${FD}`; ctx.textAlign = 'center';
+  ctx.fillText('Морфологияның негізгі зерттейтін', w / 2, 100); ctx.fillText('нысандары мен ұғымдары:', w / 2, 160);
+  const cards = [
+    ['Сөз таптары:', 'Сөздердің мағыналық, морфологиялық және синтаксистік ортақ белгілеріне қарай топталуы (мысалы: зат есім, сын есім, сан есім, есімдік, етістік, үстеу, шылау, еліктеуіш сөздер, одағай).'],
+    ['Сөздің құрылымы:', 'Түбір мен қосымша (жұрнақ, жалғау). Жалғаулар сөз бен сөзді байланыстырса, жұрнақтар жаңа мағынадағы сөздер жасайды.'],
+    ['Грамматикалық категориялар:', 'Сөздердің өзгеру жүйесі, мысалы: жіктелу, септелу, тәуелдену, шақ, рай, жақ категориялары.']
+  ];
+  const cw = (w - 80 - 40) / 3;
+  cards.forEach((cd, i) => {
+    const x = 40 + i * (cw + 20), y = 210;
+    rr(ctx, x, y, cw, h - y - 50, 22); ctx.fillStyle = 'rgba(20,70,190,.35)'; ctx.fill(); neonStroke(ctx, 205, 2, 8);
+    ctx.strokeStyle = '#8fdcff'; ctx.lineWidth = 3; const cx = x + cw / 2, cy = y + 62;
+    if (i === 0) { ctx.strokeRect(cx - 12, cy - 22, 24, 14); ctx.strokeRect(cx - 34, cy + 10, 24, 14); ctx.strokeRect(cx + 10, cy + 10, 24, 14); ctx.beginPath(); ctx.moveTo(cx, cy - 8); ctx.lineTo(cx, cy + 2); ctx.moveTo(cx - 22, cy + 2); ctx.lineTo(cx + 22, cy + 2); ctx.moveTo(cx - 22, cy + 2); ctx.lineTo(cx - 22, cy + 10); ctx.moveTo(cx + 22, cy + 2); ctx.lineTo(cx + 22, cy + 10); ctx.stroke(); }
+    else if (i === 1) { ctx.beginPath(); ctx.moveTo(cx - 30, cy); ctx.bezierCurveTo(cx - 30, cy - 26, cx - 6, cy - 22, cx - 4, cy - 10); ctx.bezierCurveTo(cx + 12, cy - 22, cx + 32, cy - 14, cx + 28, cy + 4); ctx.bezierCurveTo(cx + 26, cy + 24, cx + 6, cy + 24, cx, cy + 14); ctx.bezierCurveTo(cx - 12, cy + 26, cx - 34, cy + 20, cx - 30, cy); ctx.stroke(); }
+    else { ctx.beginPath(); ctx.arc(cx, cy, 14, 0, 7); ctx.stroke(); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * 20, cy + Math.sin(a) * 20); ctx.lineTo(cx + Math.cos(a) * 30, cy + Math.sin(a) * 30); ctx.stroke(); } }
+    ctx.fillStyle = '#fff'; ctx.font = `700 33px ${FD}`; wrapText(ctx, cd[0], cx, y + 140, cw - 40, 38, 'center');
+    ctx.fillStyle = '#d0e8ff'; ctx.font = `500 25px ${FB}`; wrapText(ctx, cd[1], x + 24, y + 222, cw - 48, 34, 'left');
+  });
+}
+function drawBriefRight(c) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  panelBase(ctx, w, h, 205);
+  ctx.fillStyle = '#fff'; ctx.font = `700 38px ${FD}`; ctx.textAlign = 'center';
+  ctx.fillText('«Сөздің пішіні –', w / 2, 84); ctx.fillText('мағынасының кілті»', w / 2, 130);
+  const names = CASES.map((x) => x.name); const bh = 62, gap = 12, y0 = 170;
+  names.forEach((n, i) => {
+    const y = y0 + i * (bh + gap);
+    rr(ctx, 40, y, w - 80, bh, 31); ctx.fillStyle = 'rgba(20,70,190,.35)'; ctx.fill(); neonStroke(ctx, 205, 2, 6);
+    ctx.fillStyle = hsl(CASES[i].hue, 100, 70); ctx.beginPath(); ctx.arc(84, y + bh / 2, 15, 0, 7); ctx.fill();
+    ctx.fillStyle = '#04123c'; ctx.font = `800 20px ${FD}`; ctx.textAlign = 'center'; ctx.fillText(String(i + 1), 84, y + bh / 2 + 7);
+    ctx.fillStyle = '#fff'; ctx.font = `600 32px ${FB}`; ctx.textAlign = 'left'; ctx.fillText(n, 120, y + bh / 2 + 11);
+  });
+}
+function drawQuote(c) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  panelBase(ctx, w, h, 205, 24);
+  bookIcon(ctx, 90, h / 2, 1.3, '#9fe0ff');
+  ctx.fillStyle = '#fff'; ctx.font = `700 48px ${FD}`; ctx.textAlign = 'left'; ctx.fillText('“Тіл – ұлттың жаны”', 160, h / 2 + 16);
+}
+function drawTitle(c) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  ctx.clearRect(0, 0, w, h);
+  const g = ctx.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, w / 2);
+  g.addColorStop(0, 'rgba(30,110,255,.55)'); g.addColorStop(1, 'rgba(10,40,160,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.font = `800 ${Math.round(h * 0.52)}px ${FD}`; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+  ctx.shadowColor = '#3aa8ff'; ctx.shadowBlur = 40; ctx.fillText('МОРФОЛОГИЯ', w / 2, h * 0.62); ctx.fillText('МОРФОЛОГИЯ', w / 2, h * 0.62); ctx.shadowBlur = 0;
+  bookIcon(ctx, w / 2, h * 0.86, 1.5, '#bfeaff');
+  ctx.strokeStyle = '#9fe0ff'; ctx.lineWidth = 3; ctx.shadowColor = '#3aa8ff'; ctx.shadowBlur = 10;
+  [-1, 1].forEach((s) => { for (let i = 0; i < 6; i++) { const x = w / 2 + s * (w * 0.33 + i * 20), y = h * 0.5 - i * 5; ctx.beginPath(); ctx.ellipse(x, y, 9, 20, s * 0.7, 0, 7); ctx.stroke(); } });
+  ctx.shadowBlur = 0;
+}
+
+/* ---- Іс бекеті (станция) ---- */
+function drawStation(c, cs, n, state, stars) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height, done = state === 'done', hue = done ? 44 : state === 'locked' ? 218 : cs.hue;
+  ctx.clearRect(0, 0, w, h); panelBase(ctx, w, h, hue, 36);
+  ctx.fillStyle = hsl(hue, 100, 78); ctx.font = `700 26px ${FD}`; ctx.textAlign = 'center';
+  ctx.fillText(cs.id === 'final' ? 'ҚОРЫТЫНДЫ ІС' : 'ІС № ' + n, w / 2, 70);
+  ctx.beginPath(); ctx.arc(w / 2, 220, 104, 0, 7); ctx.fillStyle = hsl(hue, 90, 22, 0.55); ctx.fill(); neonStroke(ctx, hue, 4, 20);
+  ctx.beginPath(); ctx.arc(w / 2, 220, 80, 0, 7); ctx.setLineDash([6, 10]); ctx.strokeStyle = hsl(hue, 100, 70, 0.5); ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#fff'; ctx.font = `800 ${cs.sample.length > 4 ? 56 : 68}px ${FD}`; ctx.fillText(cs.sample, w / 2, 244);
+  ctx.font = `700 ${cs.name.length > 11 ? 40 : 46}px ${FD}`; ctx.fillText(cs.name, w / 2, 386);
+  ctx.fillStyle = '#bfe3ff'; ctx.font = `600 30px ${FB}`; ctx.fillText(cs.ask, w / 2, 436);
+  const by = 500; rr(ctx, 56, by, w - 112, 74, 37);
+  ctx.fillStyle = done ? 'rgba(255,200,60,.18)' : 'rgba(40,140,255,.25)'; ctx.fill(); neonStroke(ctx, hue, 3, 10);
+  if (done) {
+    for (let i = 0; i < 3; i++) { starPath(ctx, w / 2 - 70 + i * 70, by + 38, 24, 10); ctx.fillStyle = i < stars ? '#ffd24a' : 'rgba(255,255,255,.18)'; ctx.fill(); }
+  } else { ctx.fillStyle = state === 'locked' ? '#8fa8d8' : '#fff'; ctx.font = `700 30px ${FD}`; ctx.fillText(state === 'locked' ? '9 ФРАГМЕНТ ЖИНА' : cs.id === 'final' ? 'КІТАПТЫ АШУ' : 'ТЕРГЕУДІ БАСТАУ', w / 2, by + 48); }
+}
+
+/* ---- Орта кітап беттері ---- */
+function drawPage(c, side) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  const g = ctx.createLinearGradient(0, 0, w, 0);
+  g.addColorStop(side < 0 ? 1 : 0, 'rgba(120,200,255,.55)'); g.addColorStop(side < 0 ? 0 : 1, 'rgba(30,110,255,.28)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(210,240,255,.9)'; ctx.lineWidth = 3; ctx.strokeRect(10, 10, w - 20, h - 20);
+  ctx.fillStyle = 'rgba(235,248,255,.95)'; ctx.font = `700 34px ${FD}`; ctx.textAlign = 'center';
+  ctx.fillText(side < 0 ? 'түбір + жұрнақ' : '+ жалғау', w / 2, 70);
+  for (let i = 0; i < 12; i++) { ctx.fillStyle = 'rgba(210,240,255,.55)'; ctx.fillRect(40, 110 + i * 34, w - 80 - (i % 3) * 36, 6); }
+}
+
+/* ---- Орта-ғарыш: еден, қабырға, төбе, ту ---- */
+function drawFloor(c) {
+  const ctx = c.getContext('2d'), S = c.width, m = S / 2;
+  const g = ctx.createRadialGradient(m, m, 10, m, m, m);
+  g.addColorStop(0, '#16358f'); g.addColorStop(0.35, '#0b1f66'); g.addColorStop(1, '#030a26');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+  ctx.strokeStyle = 'rgba(90,170,255,.12)'; ctx.lineWidth = 1;
+  for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(m + Math.cos(a) * 60, m + Math.sin(a) * 60); ctx.lineTo(m + Math.cos(a) * m, m + Math.sin(a) * m); ctx.stroke(); }
+  [[.12, 5, .9], [.2, 2, .5], [.34, 3, .6], [.5, 6, .95], [.62, 2, .45], [.8, 4, .8], [.96, 8, 1]].forEach(([f, lw, al]) => {
+    ctx.beginPath(); ctx.arc(m, m, m * f, 0, 7); ctx.lineWidth = lw; ctx.strokeStyle = `rgba(90,200,255,${al})`; ctx.shadowColor = '#3aa8ff'; ctx.shadowBlur = 16; ctx.stroke();
+  });
+  ctx.shadowBlur = 0;
+  ctx.setLineDash([4, 14]); ctx.beginPath(); ctx.arc(m, m, m * 0.7, 0, 7); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(200,235,255,.6)'; ctx.stroke(); ctx.setLineDash([]);
+}
+function drawWall(c) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#071448'); g.addColorStop(1, '#0a2270'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  const n = 16, ww = w / n;
+  for (let i = 0; i < n; i++) {
+    const x = i * ww + ww * 0.16, cw = ww * 0.68, top = h * 0.12, bot = h * 0.88;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(x, bot); ctx.lineTo(x, top + cw / 2); ctx.arc(x + cw / 2, top + cw / 2, cw / 2, Math.PI, 0); ctx.lineTo(x + cw, bot); ctx.closePath(); ctx.clip();
+    const sky = ctx.createLinearGradient(0, top, 0, bot); sky.addColorStop(0, '#071a66'); sky.addColorStop(0.6, '#2b6fd8'); sky.addColorStop(1, '#8fd0ff'); ctx.fillStyle = sky; ctx.fillRect(x, top, cw, bot - top);
+    for (let s = 0; s < 14; s++) { ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillRect(x + ((s * 53 + i * 37) % cw), top + ((s * 71 + i * 19) % (bot - top) * 0.5), 2, 2); }
+    ctx.fillStyle = '#0a2a74'; ctx.beginPath(); ctx.moveTo(x, bot); [0.1, 0.3, 0.2, 0.5, 0.35, 0.7, 0.45, 0.9, 1].forEach((t, k) => ctx.lineTo(x + cw * t, bot - (k % 2 ? 26 : 70) - ((i * 13 + k * 17) % 30))); ctx.lineTo(x + cw, bot); ctx.fill();
+    ctx.restore();
+    ctx.beginPath(); ctx.moveTo(x, bot); ctx.lineTo(x, top + cw / 2); ctx.arc(x + cw / 2, top + cw / 2, cw / 2, Math.PI, 0); ctx.lineTo(x + cw, bot);
+    ctx.lineWidth = 5; ctx.strokeStyle = '#7fd2ff'; ctx.shadowColor = '#3aa8ff'; ctx.shadowBlur = 18; ctx.stroke(); ctx.shadowBlur = 0;
+  }
+  ctx.fillStyle = 'rgba(120,200,255,.5)'; ctx.fillRect(0, h * 0.9, w, 4);
+}
+function drawCeiling(c) {
+  const ctx = c.getContext('2d'), S = c.width, m = S / 2;
+  const g = ctx.createRadialGradient(m, m, 10, m, m, m); g.addColorStop(0, '#103a9a'); g.addColorStop(0.5, '#071a66'); g.addColorStop(1, '#040c34'); ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+  for (let i = 0; i < 260; i++) { const a = Math.random() * 7, r = Math.random() * m * 0.95; ctx.fillStyle = `rgba(200,230,255,${0.2 + Math.random() * 0.7})`; ctx.fillRect(m + Math.cos(a) * r, m + Math.sin(a) * r, 2, 2); }
+}
+function drawFlag(c) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height, gold = '#fec50c';
+  ctx.fillStyle = '#00afca'; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = gold; ctx.fillRect(0, 0, w * 0.1, h);
+  ctx.fillStyle = '#00afca';
+  for (let i = 0; i < 12; i++) { const y = i * h / 12 + h / 24; ctx.beginPath(); ctx.moveTo(w * 0.02, y); ctx.lineTo(w * 0.08, y + h / 48); ctx.lineTo(w * 0.02, y + h / 24); ctx.closePath(); ctx.fill(); }
+  const cx = w * 0.56, cy = h * 0.4, R = w * 0.17;
+  ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill();
+  for (let i = 0; i < 32; i++) { const a = i / 32 * Math.PI * 2, a2 = a + Math.PI / 32; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a - 0.04) * R * 1.12, cy + Math.sin(a - 0.04) * R * 1.12); ctx.lineTo(cx + Math.cos(a2) * R * 1.45, cy + Math.sin(a2) * R * 1.45); ctx.lineTo(cx + Math.cos(a + 0.12) * R * 1.12, cy + Math.sin(a + 0.12) * R * 1.12); ctx.fill(); }
+  const ex = cx, ey = h * 0.76; ctx.beginPath(); ctx.moveTo(ex - w * 0.3, ey - h * 0.04); ctx.quadraticCurveTo(ex - w * 0.12, ey - h * 0.1, ex, ey - h * 0.02);
+  ctx.quadraticCurveTo(ex + w * 0.12, ey - h * 0.1, ex + w * 0.3, ey - h * 0.04); ctx.quadraticCurveTo(ex + w * 0.14, ey + h * 0.02, ex + w * 0.04, ey + h * 0.04);
+  ctx.lineTo(ex + w * 0.08, ey + h * 0.1); ctx.lineTo(ex - w * 0.08, ey + h * 0.1); ctx.lineTo(ex - w * 0.04, ey + h * 0.04); ctx.quadraticCurveTo(ex - w * 0.14, ey + h * 0.02, ex - w * 0.3, ey - h * 0.04); ctx.fill();
+}
+function drawGlow(c) {
+  const ctx = c.getContext('2d'), m = c.width / 2, g = ctx.createRadialGradient(m, m, 0, m, m, m);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.25, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
+}
+function drawBeam(c) {
+  const ctx = c.getContext('2d'), g = ctx.createLinearGradient(0, c.height, 0, 0);
+  g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
+}
+function drawLetter(c, ch) {
+  const ctx = c.getContext('2d'); ctx.clearRect(0, 0, c.width, c.height);
+  ctx.font = `700 ${c.height * 0.7}px ${FD}`; ctx.textAlign = 'center'; ctx.fillStyle = '#cfeaff'; ctx.shadowColor = '#3aa8ff'; ctx.shadowBlur = 14; ctx.fillText(ch, c.width / 2, c.height * 0.72);
+}
+function drawLabel(c, text, hue) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height; ctx.clearRect(0, 0, w, h);
+  rr(ctx, 6, 6, w - 12, h - 12, h / 2 - 6); ctx.fillStyle = 'rgba(6,24,90,.85)'; ctx.fill(); neonStroke(ctx, hue, 4, 10);
+  ctx.fillStyle = '#fff'; ctx.font = `700 ${h * 0.44}px ${FD}`; ctx.textAlign = 'center'; ctx.fillText(text, w / 2, h * 0.64);
+}
+
+/* ===== Тергеу логикасы: сұрақтар, ұпай, прогресс ===== */
+const Quiz = (function () {
+  const subs = [];
+  let S = null;
+  let progress = load();
+  const KEY = 'szk-progress-v1';
+  const STRIP = /[.,!?;:«»"]/g;
+
+  function load() { try { const j = JSON.parse(localStorage.getItem(KEY) || 'null'); if (j && j.cases) return j; } catch (e) {} return { cases: {} }; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (e) {} }
+  const all = () => CASES.concat([FINAL]);
+  const byId = (id) => all().find((c) => c.id === id);
+  const emit = (evt, data) => subs.forEach((f) => f(evt, data));
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const isDone = (id) => !!(progress.cases[id] && progress.cases[id].done);
+  const solvedCount = () => CASES.filter((c) => isDone(c.id)).length;
+  const finalUnlocked = () => solvedCount() === CASES.length;
+
+  function startQ() {
+    const q = S.c.qs[S.i];
+    S.q = q; S.wrong = 0; S.hint = false; S.status = 'ask'; S.marks = {}; S.built = []; S.fb = null;
+    if (q.t === 'mc') S.order = shuffle(q.o.map((_, i) => i));
+    if (q.t === 'word') S.tokens = q.s.split(/\s+/);
+  }
+  function open(id) {
+    const c = byId(id);
+    if (!c) return false;
+    if (id === FINAL.id && !finalUnlocked()) return false;
+    S = { c, i: 0, pts: [], done: false };
+    startQ(); emit('change'); return true;
+  }
+  function award() { return Math.max(25, 100 - 40 * S.wrong - (S.hint ? 25 : 0)); }
+  function good(pts) { S.status = 'ok'; S.pts.push(pts); S.fb = { ok: true, text: S.q.e }; emit('ok'); }
+  function reveal() {
+    const q = S.q;
+    S.status = 'shown'; S.pts.push(0);
+    if (q.t === 'mc') S.marks[q.a] = 'ok';
+    else if (q.t === 'word') S.tokens.forEach((t, i) => { if (q.a.includes(t.replace(STRIP, ''))) S.marks[i] = 'ok'; });
+    else S.built = q.parts.map((p) => q.chips.indexOf(p));
+    S.fb = { ok: false, text: 'Дұрыс жауап көрсетілді. ' + q.e };
+  }
+  function bad(id) {
+    if (id !== undefined) S.marks[id] = 'bad';
+    S.wrong++;
+    if (S.wrong >= 2) reveal(); else S.fb = { ok: false, text: 'Қате. Қайта көріңіз.' };
+    emit('bad');
+  }
+  function finish() {
+    const n = S.c.qs.length, sum = S.pts.reduce((a, b) => a + b, 0), avg = sum / n;
+    const stars = avg >= 85 ? 3 : avg >= 55 ? 2 : 1;
+    const prev = progress.cases[S.c.id];
+    if (!prev || sum > prev.points) progress.cases[S.c.id] = { done: true, stars, points: sum };
+    save();
+    S.done = true; S.res = { stars: progress.cases[S.c.id].stars, sum, max: n * 100 };
+    emit('solved', S.c.id);
+  }
+  function act(a) {
+    if (!S) return;
+    if (S.done) { if (a.type === 'close') close(); return; }
+    const q = S.q;
+    switch (a.type) {
+      case 'opt':
+        if (S.status !== 'ask') return;
+        if (q.t === 'mc') { if (a.id === q.a) { S.marks[a.id] = 'ok'; good(award()); } else bad(a.id); }
+        else if (q.t === 'word') {
+          if (q.a.includes(S.tokens[a.id].replace(STRIP, ''))) { S.marks[a.id] = 'ok'; good(award()); } else bad(a.id);
+        }
+        break;
+      case 'chip': if (S.status === 'ask' && q.t === 'build' && !S.built.includes(a.id) && S.built.length < q.parts.length) { S.built.push(a.id); emit('tick'); } break;
+      case 'undo': if (S.status === 'ask' && q.t === 'build') { S.built.pop(); emit('tick'); } break;
+      case 'check':
+        if (S.status === 'ask' && q.t === 'build' && S.built.length === q.parts.length) {
+          if (S.built.map((i) => q.chips[i]).join('') === q.target) good(award());
+          else { const keep = S.wrong + 1; if (keep >= 2) { bad(); } else { S.built = []; bad(); } }
+        }
+        break;
+      case 'hint': if (S.status === 'ask' && !S.hint) { S.hint = true; emit('tick'); } break;
+      case 'next':
+        if (S.status === 'ask') return;
+        if (S.i < S.c.qs.length - 1) { S.i++; startQ(); emit('tick'); } else finish();
+        break;
+      case 'close': close(); return;
+    }
+    emit('change');
+  }
+  function close() { const id = S && S.done ? S.c.id : null; S = null; emit('change'); emit('closed', id); }
+
+  function view() {
+    if (!S) return null;
+    if (S.done) return { mode: 'result', title: S.c.name, id: S.c.id, stars: S.res.stars, sum: S.res.sum, max: S.res.max, last: S.c.id === FINAL.id };
+    const q = S.q, ask = S.status === 'ask';
+    const v = { mode: 'q', id: S.c.id, title: S.c.name, idx: S.i, count: S.c.qs.length, kind: q.t, prompt: q.q,
+      hint: S.hint ? q.h : null, fb: S.fb, status: S.status, canHint: ask && !S.hint, canNext: !ask, last: S.i === S.c.qs.length - 1, items: [] };
+    if (q.t === 'mc') v.items = S.order.map((i) => ({ id: i, label: q.o[i], st: S.marks[i] || 'idle' }));
+    else if (q.t === 'word') v.items = S.tokens.map((t, i) => ({ id: i, label: t, st: S.marks[i] || 'idle' }));
+    else {
+      v.items = q.chips.map((c, i) => ({ id: i, label: c, st: S.built.includes(i) ? 'used' : 'idle' }));
+      v.built = S.built.map((i) => q.chips[i]); v.slots = q.parts.length;
+      v.canCheck = ask && S.built.length === q.parts.length; v.canUndo = ask && S.built.length > 0;
+    }
+    return v;
+  }
+  function totals() {
+    let p = 0, max = 0;
+    all().forEach((c) => { max += c.qs.length * 100; const r = progress.cases[c.id]; if (r && r.done) p += r.points; });
+    return { points: p, max, solved: solvedCount(), total: CASES.length, finalDone: isDone(FINAL.id) };
+  }
+  function rank() { const t = totals(), r = t.points / t.max; return RANKS.find((x) => r >= x[0])[1]; }
+  function reset() { progress = { cases: {} }; save(); S = null; emit('reset'); emit('change'); }
+
+  return { on: (f) => subs.push(f), open, act, view, totals, rank, reset, isDone, finalUnlocked, byId, all,
+    stars: (id) => (progress.cases[id] ? progress.cases[id].stars : 0), active: () => !!S };
+})();
+
+/* ===== 3D әлем: футуристік неон зал ===== */
+function curvedGeo(r, w, h, seg) {
+  const g = new THREE.BufferGeometry(), pos = [], uv = [], idx = [];
+  for (let i = 0; i <= seg; i++) {
+    const u = i / seg, a = (u - 0.5) * w / r, x = r * Math.sin(a), z = r - r * Math.cos(a);
+    pos.push(x, -h / 2, z, x, h / 2, z); uv.push(u, 0, u, 1);
+    if (i < seg) { const k = i * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); }
+  }
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+const DEG = Math.PI / 180;
+const onRing = (th, R) => [R * Math.sin(th * DEG), -R * Math.cos(th * DEG)];
+
+function buildWorld(scene) {
+  const W = { stations: [], hits: [], colliders: [], tick: [], tokens: [] };
+  const hall = new THREE.Group(), anchor = new THREE.Group(), tokens = new THREE.Group();
+  scene.add(hall); scene.add(anchor); anchor.add(tokens); tokens.visible = false;
+  W.hall = hall; W.anchor = anchor; W.tokens = tokens;
+
+  const basic = (o) => new THREE.MeshBasicMaterial(Object.assign({ toneMapped: false }, o));
+  const glowTex = (() => { const c = mkCanvas(128, 128); drawGlow(c); return mkTex(c); })();
+  const beamTex = (() => { const c = mkCanvas(16, 256); drawBeam(c); return mkTex(c); })();
+  const addGlow = (parent, x, y, z, size, col, op) => {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false }));
+    s.position.set(x, y, z); s.scale.set(size, size, 1); parent.add(s); return s;
+  };
+
+  /* --- жарық --- */
+  scene.add(new THREE.AmbientLight(0x7aa0ff, 0.65));
+  scene.add(new THREE.HemisphereLight(0xa8d4ff, 0x0a1a5c, 0.55));
+  const hubLight = new THREE.PointLight(0x4cc6ff, 1.5, 24); hubLight.position.set(0, 3, 0); anchor.add(hubLight);
+
+  /* --- еден, қабырға, төбе --- */
+  const floorC = mkCanvas(1024, 1024); drawFloor(floorC);
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(15.5, 96), basic({ map: mkTex(floorC) })); floor.rotation.x = -Math.PI / 2; hall.add(floor);
+  const wallC = mkCanvas(2048, 512); drawWall(wallC);
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(15.5, 15.5, 9, 96, 1, true), basic({ map: mkTex(wallC), side: THREE.BackSide })); wall.position.y = 4.5; hall.add(wall);
+  const ceilC = mkCanvas(1024, 1024); drawCeiling(ceilC);
+  const ceil = new THREE.Mesh(new THREE.CircleGeometry(15.5, 64), basic({ map: mkTex(ceilC) })); ceil.rotation.x = Math.PI / 2; ceil.position.y = 9; hall.add(ceil);
+  [4.5, 8.6, 13].forEach((R, i) => {
+    const t = new THREE.Mesh(new THREE.TorusGeometry(R, 0.07, 8, 128), basic({ color: 0xcdeaff })); t.rotation.x = Math.PI / 2; t.position.y = 8.9 - i * 0.02; hall.add(t);
+    const g = new THREE.Mesh(new THREE.TorusGeometry(R, 0.34, 8, 96), basic({ color: 0x3aa8ff, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false })); g.rotation.x = Math.PI / 2; g.position.y = 8.9; hall.add(g);
+  });
+
+  /* --- кітап сөрелері (instanced) --- */
+  {
+    const angles = []; for (let a = 68; a <= 292; a += 9.4) angles.push(a);
+    const palette = ['#1e5bff', '#2f7bff', '#3aa8ff', '#7ad7ff', '#e8f6ff', '#2a3f9e', '#ffcf4a', '#1aa37a', '#8a5cff', '#3aa8ff'];
+    const rows = 5, perRow = 15, box = new THREE.BoxGeometry(1, 1, 1);
+    const frames = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial({ color: 0x0f2670 }), angles.length * (rows + 1) + angles.length * 2);
+    const strips = new THREE.InstancedMesh(box, basic({ color: 0x5cc8ff }), angles.length * 2);
+    const books = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial({ color: 0xffffff }), angles.length * rows * perRow);
+    let fi = 0, si = 0, bi = 0; const M = new THREE.Matrix4(), B = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3(), col = new THREE.Color();
+    const put = (mesh, i, base, x, y, z, sx, sy, sz) => { M.compose(V.set(x, y, z), Q, S.set(sx, sy, sz)); mesh.setMatrixAt(i, B.copy(base).multiply(M)); };
+    angles.forEach((th) => {
+      const [px, pz] = onRing(th, 14.3), base = new THREE.Matrix4().makeRotationY(-th * DEG).setPosition(px, 0, pz);
+      put(frames, fi++, base, -1.17, 2.25, 0, 0.1, 4.5, 0.55); put(frames, fi++, base, 1.17, 2.25, 0, 0.1, 4.5, 0.55);
+      for (let r = 0; r <= rows; r++) put(frames, fi++, base, 0, 0.12 + r * 0.8, 0, 2.4, 0.08, 0.55);
+      put(strips, si++, base, -1.17, 2.25, 0.29, 0.04, 4.4, 0.02); put(strips, si++, base, 1.17, 2.25, 0.29, 0.04, 4.4, 0.02);
+      for (let r = 0; r < rows; r++) {
+        let x = -1.08;
+        for (let k = 0; k < perRow && x < 1.04; k++) {
+          const w = 0.07 + Math.random() * 0.09, h = 0.46 + Math.random() * 0.26, d = 0.32 + Math.random() * 0.1;
+          put(books, bi, base, x + w / 2, 0.16 + r * 0.8 + h / 2, 0.02, w, h, d);
+          books.setColorAt(bi, col.set(palette[(Math.random() * palette.length) | 0])); bi++; x += w + 0.012;
+        }
+      }
+    });
+    frames.count = fi; books.count = bi; frames.instanceMatrix.needsUpdate = books.instanceMatrix.needsUpdate = strips.instanceMatrix.needsUpdate = true;
+    hall.add(frames, strips, books);
+  }
+
+  /* --- брифинг панельдері --- */
+  const mat = (t) => basic({ map: t, transparent: true, side: THREE.DoubleSide, alphaTest: 0.02 });
+  function addCurved(draw, cw, ch, w, h, th, R, y) {
+    const c = mkCanvas(cw, ch); draw(c);
+    const m = new THREE.Mesh(curvedGeo(R, w, h, 28), mat(mkTex(c)));
+    const [x, z] = onRing(th, R); m.position.set(x, y, z); m.rotation.y = -th * DEG; hall.add(m); return m;
+  }
+  W.redraw = [];
+  W.redraw.push(() => {});
+  addCurved(drawBriefCenter, 1800, 1050, 7.2, 4.2, 0, 13.4, 3.6);
+  addCurved(drawBriefLeft, 1024, 790, 4.8, 3.7, -29, 13.4, 3.5);
+  addCurved(drawBriefRight, 800, 880, 4.2, 4.6, 28.5, 13.4, 3.7);
+  addCurved(drawTitle, 2200, 480, 11, 2.4, 0, 13.4, 7.3);
+
+  /* --- ту --- */
+  { const c = mkCanvas(384, 576); drawFlag(c); const f = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 2.55, 12, 1), basic({ map: mkTex(c), side: THREE.DoubleSide }));
+    const [x, z] = onRing(58, 13.9); f.position.set(x, 3.5, z); f.rotation.y = -58 * DEG; hall.add(f);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.1, 8), new THREE.MeshLambertMaterial({ color: 0xc9e6ff })); pole.position.set(x * 0.998, 3.5, z * 0.998); hall.add(pole);
+    W.tick.push((dt, t) => { const p = f.geometry.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getX(i) * 3 + t * 2) * 0.04 * (p.getX(i) + 0.85)); p.needsUpdate = true; }); }
+
+  /* --- өсімдіктер --- */
+  [[64, 13.0], [296, 13.0], [84, 12.9], [276, 12.9]].forEach(([th, R]) => {
+    const [x, z] = onRing(th, R), g = new THREE.Group(); g.position.set(x, 0, z);
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.26, 0.5, 16), new THREE.MeshLambertMaterial({ color: 0xdfeaff })); pot.position.y = 0.25; g.add(pot);
+    for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283, leaf = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.9 + Math.random() * 0.4, 6), new THREE.MeshLambertMaterial({ color: 0x1fa85a }));
+      leaf.position.set(Math.cos(a) * 0.17, 0.95, Math.sin(a) * 0.17); leaf.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5); g.add(leaf); }
+    hall.add(g); W.colliders.push({ x, z, r: 0.5 });
+  });
+
+  /* --- үстел: дәйексөз, кітаптар, VR көзілдірік --- */
+  {
+    const dz = 3.2, dark = new THREE.MeshLambertMaterial({ color: 0x0c1d58 });
+    const top = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.1, 1.2), new THREE.MeshLambertMaterial({ color: 0x1a3a9a })); top.position.set(0, 0.85, dz); hall.add(top);
+    [-1.75, 1.75].forEach((x) => { const l = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.8, 1.1), dark); l.position.set(x, 0.4, dz); hall.add(l); });
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.03, 0.03), basic({ color: 0x66d0ff })); edge.position.set(0, 0.9, dz + 0.6); hall.add(edge);
+    [-1.2, 0, 1.2].forEach((x) => W.colliders.push({ x, z: dz, r: 0.75 }));
+    const qc = mkCanvas(900, 290); drawQuote(qc); const q = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.516), mat(mkTex(qc)));
+    q.position.set(0, 1.18, dz - 0.05); q.rotation.x = -0.75; hall.add(q);
+    ['Қазақ тілі', 'Морфология', 'Грамматика'].forEach((txt, i) => {
+      const c = mkCanvas(512, 128), ctx = c.getContext('2d'); ctx.fillStyle = ['#13389c', '#1f56d8', '#0f6a52'][i]; ctx.fillRect(0, 0, 512, 128);
+      ctx.strokeStyle = '#ffe28a'; ctx.lineWidth = 4; ctx.strokeRect(8, 8, 496, 112); ctx.fillStyle = '#fff'; ctx.font = `700 52px ${FD}`; ctx.textAlign = 'center'; ctx.fillText(txt, 256, 82);
+      const side = new THREE.MeshLambertMaterial({ color: 0xe8f3ff }), face = new THREE.MeshLambertMaterial({ map: mkTex(c) });
+      const b = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.8), [side, side, side, side, face, side]);
+      b.position.set(-1.25 + (i - 1) * 0.04, 0.95 + 0.2 * i + 0.1, dz); b.rotation.y = (i - 1) * 0.08; hall.add(b);
+    });
+    const hs = new THREE.Group(); hs.position.set(1.28, 1.08, dz); hs.rotation.y = -0.35; hall.add(hs);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.28, 0.3), new THREE.MeshLambertMaterial({ color: 0x0a1030 })); hs.add(body);
+    const lens = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.15), basic({ color: 0x55ccff })); lens.position.z = 0.152; hs.add(lens);
+    const strap = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 24), new THREE.MeshLambertMaterial({ color: 0x0a1030 })); strap.rotation.y = Math.PI / 2; strap.position.z = -0.2; hs.add(strap);
+    body.userData.interact = { type: 'modes' }; lens.userData.interact = { type: 'modes' }; W.hits.push(body, lens);
+    addGlow(hs, 0, 0, 0.3, 0.9, 0x55ccff, 0.5);
+    W.headset = hs; W.tick.push((dt, t) => { hs.position.y = 1.08 + Math.sin(t * 1.6) * 0.03; });
+  }
+
+  /* --- 9 іс бекеті --- */
+  CASES.forEach((cs, i) => {
+    const th = 80 + 25 * i, [x, z] = onRing(th, 9.5), g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = -th * DEG; hall.add(g);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.22, 36), new THREE.MeshLambertMaterial({ color: 0x0f2a80 })); base.position.y = 0.11; g.add(base);
+    const ringMat = basic({ color: new THREE.Color(hsl(cs.hue, 100, 62)), transparent: true, opacity: 0.95, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.1, 48), ringMat); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; g.add(ring);
+    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 1.2, 12), new THREE.MeshLambertMaterial({ color: 0x1b3fa8 })); pillar.position.y = 0.8; g.add(pillar);
+    const beamMat = basic({ map: beamTex, color: new THREE.Color(hsl(cs.hue, 100, 60)), transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 6.5, 28, 1, true), beamMat); beam.position.y = 3.3; g.add(beam);
+    const pc = mkCanvas(512, 640), panelTex = mkTex(pc); drawStation(pc, cs, i + 1, 'open', 0);
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.5), mat(panelTex)); panel.position.y = 2.25; g.add(panel);
+    panel.userData.interact = { type: 'case', id: cs.id }; W.hits.push(panel);
+    const halo = addGlow(g, 0, 0.2, 0, 3.0, new THREE.Color(hsl(cs.hue, 100, 55)), 0.4);
+    W.colliders.push({ x, z, r: 0.85 });
+    const st = { id: cs.id, group: g, panel, pc, panelTex, ringMat, beamMat, halo, cs, n: i + 1, pos: new THREE.Vector3(x, 0, z), th };
+    W.stations.push(st);
+    W.tick.push((dt, t) => { panel.position.y = 2.25 + Math.sin(t * 1.3 + i) * 0.06; ring.rotation.z = t * 0.4; beamMat.opacity = 0.42 + Math.sin(t * 2 + i) * 0.1; });
+  });
+  W.stationById = (id) => W.stations.find((s) => s.id === id);
+
+  /* --- орталық: кітап платформасы --- */
+  const hub = new THREE.Group(); anchor.add(hub);
+  const plat = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.6, 0.3, 64), new THREE.MeshLambertMaterial({ color: 0x0c1f66 })); plat.position.y = 0.15; hub.add(plat);
+  const rings = [[2.4, 2.58, 0x66d0ff, 1], [3.0, 3.08, 0x3aa8ff, 0.8], [3.3, 3.45, 0xbfeaff, 0.9], [1.3, 1.4, 0x66d0ff, 0.8]].map(([a, b, c, o]) => {
+    const r = new THREE.Mesh(new THREE.RingGeometry(a, b, 96), basic({ color: c, transparent: true, opacity: o, side: THREE.DoubleSide })); r.rotation.x = -Math.PI / 2; r.position.y = 0.32; hub.add(r); return r;
+  });
+  const inner = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.6, 0.35, 48), new THREE.MeshLambertMaterial({ color: 0x143090 })); inner.position.y = 0.47; hub.add(inner);
+  addGlow(hub, 0, 0.6, 0, 7.5, 0x3aa8ff, 0.35).rotation && 0;
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(1.6, 40, 28), basic({ color: 0x66ccff, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false })); dome.position.y = 2.1; hub.add(dome);
+  const wire = new THREE.Mesh(new THREE.SphereGeometry(1.62, 18, 12), basic({ color: 0x9fe0ff, wireframe: true, transparent: true, opacity: 0.12 })); wire.position.y = 2.1; hub.add(wire);
+  dome.userData.interact = { type: 'case', id: 'final' }; W.hits.push(dome);
+  const book = new THREE.Group(); book.position.y = 2.1; hub.add(book);
+  const pages = [-1, 1].map((s) => {
+    const c = mkCanvas(256, 360); drawPage(c, s);
+    const geo = new THREE.PlaneGeometry(1.1, 1.5, 12, 1), p = geo.attributes.position;
+    for (let i = 0; i < p.count; i++) p.setZ(i, -Math.pow(Math.abs(p.getX(i) + s * 0.55), 2) * 0.35 * 0 + Math.sin((p.getX(i) + s * 0.55) * 3) * 0.04);
+    const m = new THREE.Mesh(geo, basic({ map: mkTex(c), side: THREE.DoubleSide, transparent: true, opacity: 0.95 }));
+    const pg = new THREE.Group(); m.position.x = s * 0.55; pg.add(m); pg.rotation.y = s * -0.28; book.add(pg); return pg;
+  });
+  book.rotation.x = -0.35;
+  const core = addGlow(book, 0, 0.1, 0, 2.4, 0x7ad7ff, 0.5);
+  const gems = CASES.map((cs, i) => {
+    const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.16), basic({ color: 0x2a4a8a })); hub.add(m);
+    const gl = addGlow(m, 0, 0, 0, 1.2, 0xffcf4a, 0); return { m, gl, i };
+  });
+  const lbC = mkCanvas(512, 640), lbTex = mkTex(lbC);
+  const label = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.0), mat(lbTex)); label.position.y = 4.6; hub.add(label);
+  label.userData.interact = { type: 'case', id: 'final' }; W.hits.push(label);
+  W.hub = { group: hub, book, dome, label, gems, core };
+  W.drawFinalLabel = (state, stars) => { drawStation(lbC, FINAL, 'F', state, stars || 0); lbTex.needsUpdate = true; };
+  W.drawFinalLabel('locked');
+  W.colliders.push({ x: 0, z: 0, r: 1.9 });
+
+  W.setState = (id, state, stars) => {
+    const st = W.stationById(id); if (!st) return;
+    drawStation(st.pc, st.cs, st.n, state, stars); st.panelTex.needsUpdate = true;
+    const c = state === 'done' ? new THREE.Color(0xffcf4a) : new THREE.Color(hsl(st.cs.hue, 100, 62));
+    st.ringMat.color.copy(c); st.beamMat.color.copy(c); st.halo.material.color.copy(c);
+    const idx = CASES.findIndex((x) => x.id === id), g = gems[idx], tk = W.tokenList && W.tokenList[idx];
+    g.m.material.color.set(state === 'done' ? 0xffcf4a : 0x2a4a8a); g.gl.material.opacity = state === 'done' ? 0.8 : 0;
+    if (tk) tk.material.color.set(state === 'done' ? 0xffcf4a : new THREE.Color(hsl(st.cs.hue, 100, 62)));
+  };
+  W.setFinal = (unlocked, done, stars) => {
+    W.drawFinalLabel(done ? 'done' : unlocked ? 'open' : 'locked', stars);
+    dome.material.opacity = unlocked ? 0.2 : 0.08; core.material.opacity = unlocked ? 1 : 0.4; core.material.color.set(done ? 0xffcf4a : 0x7ad7ff);
+  };
+
+  /* --- AR белгілері --- */
+  W.tokenList = CASES.map((cs, i) => {
+    const a = i / CASES.length * Math.PI * 2, R = 2.7;
+    const s = new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 14), basic({ color: new THREE.Color(hsl(cs.hue, 100, 62)) })); s.position.set(Math.cos(a) * R, 1.0, Math.sin(a) * R);
+    s.userData.interact = { type: 'case', id: cs.id }; W.hits.push(s); tokens.add(s);
+    const c = mkCanvas(384, 112); drawLabel(c, (i + 1) + '  ' + cs.name, cs.hue);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: mkTex(c), transparent: true, depthWrite: false })); sp.scale.set(1.7, 0.5, 1); sp.position.set(0, 0.7, 0); s.add(sp);
+    s.userData.interact.label = true; return s;
+  });
+
+  /* --- әріп бөлшектері --- */
+  {
+    const letters = 'әғқңөұүһіабгдежзклмнорстшыя'.split(''), texs = [];
+    for (let i = 0; i < 14; i++) { const c = mkCanvas(96, 96); drawLetter(c, letters[(Math.random() * letters.length) | 0]); texs.push(mkTex(c)); }
+    const sprites = [];
+    for (let i = 0; i < 44; i++) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texs[i % texs.length], transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
+      const a = Math.random() * 6.283, r = 3 + Math.random() * 9;
+      s.position.set(Math.cos(a) * r, 0.5 + Math.random() * 7, Math.sin(a) * r); const k = 0.35 + Math.random() * 0.35; s.scale.set(k, k, 1); s.userData.v = 0.12 + Math.random() * 0.25; hall.add(s); sprites.push(s);
+    }
+    W.tick.push((dt) => sprites.forEach((s) => { s.position.y += s.userData.v * dt; if (s.position.y > 8) s.position.y = 0.4; }));
+  }
+
+  /* --- хаб анимациясы --- */
+  W.tick.push((dt, t, cam) => {
+    book.rotation.y = t * 0.35; book.position.y = 2.1 + Math.sin(t * 1.4) * 0.07;
+    rings[0].rotation.z = t * 0.3; rings[1].rotation.z = -t * 0.2; wire.rotation.y = t * 0.1;
+    pages[0].rotation.y = -0.28 - Math.sin(t * 1.4) * 0.04; pages[1].rotation.y = 0.28 + Math.sin(t * 1.4) * 0.04;
+    gems.forEach((g) => { const a = t * 0.5 + g.i / gems.length * 6.283; g.m.position.set(Math.cos(a) * 1.25, 2.1 + Math.sin(t + g.i) * 0.2, Math.sin(a) * 1.25); g.m.rotation.y = t * 2; });
+    if (cam) { const p = new THREE.Vector3(); cam.getWorldPosition(p); label.lookAt(p.x, label.getWorldPosition(new THREE.Vector3()).y, p.z); }
+    tokens.children.forEach((s, i) => { s.position.y = 1.0 + Math.sin(t * 1.6 + i) * 0.08; });
+  });
+
+  /* --- режим ауыстыру: зал немесе AR --- */
+  W.setMode = (m) => {
+    const ar = m === 'ar';
+    hall.visible = !ar; tokens.visible = ar; hubLight.intensity = ar ? 0.8 : 1.5;
+    scene.fog = ar ? null : new THREE.FogExp2(0x061234, 0.018);
+    scene.background = ar ? null : new THREE.Color(0x040a22);
+    label.position.y = ar ? 4.0 : 4.6;
+  };
+  W.update = (dt, t, cam) => W.tick.forEach((f) => f(dt, t, cam));
+  W.setMode('hall');
+  return W;
+}
+
+/* ===== Интерфейс: DOM-викторина, 3D-панель, дыбыс ===== */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const Sfx = (function () {
+  let ctx = null, on = true, amb = null;
+  function init() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const g = ctx.createGain(); g.gain.value = 0.035; const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 220;
+      [55, 82.6, 110.4].forEach((fr) => { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = fr; o.connect(f); o.start(); });
+      f.connect(g); g.connect(ctx.destination); amb = g;
+    } catch (e) { ctx = null; }
+  }
+  function tone(fr, d, type, v, delay) {
+    if (!ctx || !on) return; const t = ctx.currentTime + (delay || 0), o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || 'sine'; o.frequency.value = fr; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v || 0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + d + 0.05);
+  }
+  return { init, get on() { return on; },
+    toggle() { on = !on; if (amb) amb.gain.value = on ? 0.035 : 0; return on; },
+    ok() { tone(660, 0.18, 'triangle', 0.12); tone(880, 0.25, 'triangle', 0.12, 0.1); },
+    bad() { tone(180, 0.28, 'sawtooth', 0.07); },
+    tick() { tone(520, 0.06, 'square', 0.04); },
+    win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.4, 'triangle', 0.12, i * 0.12)); } };
+})();
+
+const Toast = { show(msg, ms) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(Toast._t); Toast._t = setTimeout(() => t.classList.remove('on'), ms || 2600); } };
+
+/* ---- DOM викторина ---- */
+const QuizDom = (function () {
+  const root = () => $('#quiz');
+  function stars(n) { let s = ''; for (let i = 0; i < 3; i++) s += `<svg class="star ${i < n ? 'on' : ''}" viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg>`; return s; }
+  function render() {
+    const v = Quiz.view(), el = root();
+    if (!v) { el.hidden = true; return; }
+    el.hidden = false;
+    let h = '';
+    if (v.mode === 'result') {
+      h = `<div class="q-card result"><p class="q-eyebrow">${v.last ? 'Қорытынды іс' : 'Іс шешілді'}</p><h2>${esc(v.title)}</h2><div class="stars">${stars(v.stars)}</div>
+        <p class="q-score">${v.sum} / ${v.max} ұпай</p><p class="q-text">${v.last ? 'Сөз кітабы қалпына келді!' : 'Кілт фрагменті табылды. Келесі істі ашуға болады.'}</p>
+        <button class="btn primary" data-act="close">Жалғастыру</button></div>`;
+    } else {
+      const dots = Array.from({ length: v.count }, (_, i) => `<i class="${i < v.idx ? 'done' : i === v.idx ? 'cur' : ''}"></i>`).join('');
+      h = `<div class="q-card"><div class="q-head"><span class="q-eyebrow">${esc(v.title)}</span><span class="q-dots">${dots}</span><button class="icon-btn" data-act="close" aria-label="Жабу">&times;</button></div>
+        <p class="q-prompt">${esc(v.prompt)}</p>`;
+      if (v.kind === 'mc') h += '<div class="opts">' + v.items.map((o) => `<button class="opt ${o.st}" data-act="opt" data-id="${o.id}" ${v.status !== 'ask' ? 'disabled' : ''}>${esc(o.label)}</button>`).join('') + '</div>';
+      else if (v.kind === 'word') h += '<p class="sentence">' + v.items.map((o) => `<button class="tok ${o.st}" data-act="opt" data-id="${o.id}" ${v.status !== 'ask' ? 'disabled' : ''}>${esc(o.label)}</button>`).join(' ') + '</p>';
+      else {
+        h += '<div class="slots">' + Array.from({ length: v.slots }, (_, i) => `<span class="slot ${v.built[i] ? 'full' : ''}">${v.built[i] ? esc(v.built[i]) : ''}</span>`).join('<b>+</b>') + '</div>';
+        h += '<div class="chips">' + v.items.map((o) => `<button class="chip ${o.st}" data-act="chip" data-id="${o.id}" ${o.st === 'used' || v.status !== 'ask' ? 'disabled' : ''}>${esc(o.label)}</button>`).join('') + '</div>';
+        h += `<div class="row"><button class="btn" data-act="undo" ${v.canUndo ? '' : 'disabled'}>Артқа</button><button class="btn primary" data-act="check" ${v.canCheck ? '' : 'disabled'}>Тексеру</button></div>`;
+      }
+      if (v.hint) h += `<p class="q-hint"><b>Кеңес:</b> ${esc(v.hint)}</p>`;
+      if (v.fb) h += `<p class="q-fb ${v.fb.ok ? 'ok' : 'bad'}">${esc(v.fb.text)}</p>`;
+      h += `<div class="q-foot"><button class="btn ghost" data-act="hint" ${v.canHint ? '' : 'disabled'}>Кеңес (−25)</button><button class="btn primary" data-act="next" ${v.canNext ? '' : 'disabled'}>${v.last ? 'Аяқтау' : 'Келесі'}</button></div></div>`;
+    }
+    el.innerHTML = h;
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('#quiz [data-act]'); if (!b || b.disabled) return;
+    const a = b.dataset.act, id = b.dataset.id !== undefined ? +b.dataset.id : undefined;
+    Quiz.act({ type: a, id });
+  });
+  return { render };
+})();
+
+/* ---- 3D панель (VR / Cardboard) ---- */
+const Panel3D = (function () {
+  const W = 1024, H = 768, c = mkCanvas(W, H), ctx = c.getContext('2d'), tex = mkTex(c);
+  let regions = [], mesh = null, hover = null;
+  function build() {
+    mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.8), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide, toneMapped: false }));
+    mesh.renderOrder = 20; mesh.visible = false; return mesh;
+  }
+  function btn(x, y, w, h, label, act, st, id) {
+    const hv = hover && hover.act === act && hover.id === id;
+    const col = st === 'ok' ? 140 : st === 'bad' ? 345 : st === 'used' ? 215 : 205;
+    rr(ctx, x, y, w, h, 18); ctx.fillStyle = hv ? 'rgba(60,160,255,.55)' : st === 'ok' ? 'rgba(40,200,130,.3)' : st === 'bad' ? 'rgba(255,70,110,.25)' : 'rgba(20,70,190,.4)'; ctx.fill(); neonStroke(ctx, col, hv ? 5 : 2.5, hv ? 18 : 6);
+    ctx.fillStyle = st === 'used' ? '#7a94c8' : '#fff'; ctx.textAlign = 'center'; ctx.fillText(label, x + w / 2, y + h / 2 + 11);
+    if (st !== 'used' && !(st === 'disabled')) regions.push({ x, y, w, h, act, id });
+  }
+  function draw() {
+    const v = Quiz.view(); ctx.clearRect(0, 0, W, H); regions = [];
+    panelBase(ctx, W, H, 205, 36); if (!v) { tex.needsUpdate = true; return; }
+    ctx.textAlign = 'left';
+    if (v.mode === 'result') {
+      ctx.fillStyle = '#9fe0ff'; ctx.font = `700 30px ${FD}`; ctx.textAlign = 'center'; ctx.fillText(v.last ? 'ҚОРЫТЫНДЫ ІС' : 'ІС ШЕШІЛДІ', W / 2, 120);
+      ctx.fillStyle = '#fff'; ctx.font = `800 70px ${FD}`; ctx.fillText(v.title, W / 2, 230);
+      for (let i = 0; i < 3; i++) { starPath(ctx, W / 2 - 100 + i * 100, 330, 42, 18); ctx.fillStyle = i < v.stars ? '#ffd24a' : 'rgba(255,255,255,.2)'; ctx.fill(); }
+      ctx.fillStyle = '#d8efff'; ctx.font = `600 40px ${FB}`; ctx.fillText(v.sum + ' / ' + v.max + ' ұпай', W / 2, 440);
+      ctx.font = `700 38px ${FD}`; btn(W / 2 - 170, 540, 340, 90, 'Жалғастыру', 'close');
+    } else {
+      ctx.fillStyle = '#9fe0ff'; ctx.font = `700 28px ${FD}`; ctx.textAlign = 'left'; ctx.fillText(v.title.toUpperCase() + '  ·  ' + (v.idx + 1) + '/' + v.count, 60, 74);
+      ctx.font = `700 30px ${FD}`; btn(W - 120, 40, 70, 56, '×', 'close');
+      ctx.fillStyle = '#fff'; ctx.font = `700 38px ${FB}`; let y = wrapText(ctx, v.prompt, 60, 140, W - 120, 48, 'left');
+      ctx.font = `600 34px ${FB}`;
+      if (v.kind === 'mc') v.items.forEach((o, i) => btn(60, y + 6 + i * 84, W - 120, 72, o.label, v.status === 'ask' ? 'opt' : 'x', o.st === 'idle' ? '' : o.st, o.id));
+      else if (v.kind === 'word') {
+        let x = 60, yy = y + 40; ctx.font = `700 40px ${FB}`;
+        v.items.forEach((o) => { const w = ctx.measureText(o.label).width + 44; if (x + w > W - 60) { x = 60; yy += 84; } btn(x, yy - 44, w, 70, o.label, v.status === 'ask' ? 'opt' : 'x', o.st === 'idle' ? '' : o.st, o.id); x += w + 14; });
+      } else {
+        ctx.font = `700 38px ${FB}`; let x = 60;
+        for (let i = 0; i < v.slots; i++) { rr(ctx, x, y + 10, 180, 70, 14); ctx.fillStyle = 'rgba(10,30,100,.7)'; ctx.fill(); neonStroke(ctx, 205, 2, 4); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(v.built[i] || '', x + 90, y + 58); x += 200; }
+        let cx = 60; v.items.forEach((o) => { btn(cx, y + 110, 140, 70, o.label, v.status === 'ask' ? 'chip' : 'x', o.st === 'idle' ? '' : o.st, o.id); cx += 154; });
+        ctx.font = `700 32px ${FD}`; btn(60, y + 200, 200, 64, 'Артқа', v.canUndo ? 'undo' : 'x', v.canUndo ? '' : 'used'); btn(280, y + 200, 240, 64, 'Тексеру', v.canCheck ? 'check' : 'x', v.canCheck ? 'ok' : 'used');
+      }
+      ctx.textAlign = 'left'; ctx.font = `500 28px ${FB}`;
+      if (v.hint) { ctx.fillStyle = '#ffe28a'; wrapText(ctx, 'Кеңес: ' + v.hint, 60, 590, W - 120, 36, 'left'); }
+      if (v.fb) { ctx.fillStyle = v.fb.ok ? '#6dffb4' : '#ff8aa3'; wrapText(ctx, v.fb.text, 60, v.hint ? 650 : 600, W - 120, 36, 'left'); }
+      ctx.font = `700 30px ${FD}`;
+      btn(60, H - 100, 260, 64, 'Кеңес (−25)', v.canHint ? 'hint' : 'x', v.canHint ? '' : 'used'); btn(W - 320, H - 100, 260, 64, v.last ? 'Аяқтау' : 'Келесі', v.canNext ? 'next' : 'x', v.canNext ? 'ok' : 'used');
+    }
+    tex.needsUpdate = true;
+  }
+  function regionAt(uv) {
+    const px = uv.x * W, py = (1 - uv.y) * H;
+    return regions.find((r) => px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) || null;
+  }
+  function setHover(r) { const k = r ? r.act + ':' + r.id : ''; if (k !== (hover ? hover.act + ':' + hover.id : '')) { hover = r; draw(); } }
+  return { build, draw, regionAt, setHover, get mesh() { return mesh; } };
+})();
+
+/* ===== Негізгі қозғалтқыш: рендер, басқару, режимдер ===== */
+const G = { mode: 'hall', started: false, domOverlay: false, t: 0 };
+const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
+const V3 = THREE.Vector3;
+
+const canvas = $('#gl'), app = $('#app');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isTouch ? 1.75 : 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.setClearColor(0x040a22, 1);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(72, 1, 0.05, 90);
+const rig = new THREE.Group(); rig.add(camera); scene.add(rig); camera.position.y = 1.65;
+const stereoCam = new THREE.StereoCamera(); stereoCam.eyeSep = 0.064;
+const P = { x: 0, z: 6, yaw: 0, pitch: 0 };
+const raycaster = new THREE.Raycaster();
+let W3 = null;
+
+/* ---------- қолжетімділік ---------- */
+const use3D = () => G.mode === 'cardboard' || (renderer.xr.isPresenting && !G.domOverlay);
+const visible = (o) => { while (o) { if (!o.visible) return false; o = o.parent; } return true; };
+const headPos = () => camera.getWorldPosition(new V3());
+const heading = () => { const v = camera.getWorldDirection(new V3()); return Math.atan2(-v.x, -v.z); };
+
+/* ---------- гироскоп ---------- */
+const Gyro = { on: false, has: false, cal: false, a: 0, b: 0, g: 0, off: 0, q: new THREE.Quaternion() };
+const q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)), zee = new V3(0, 0, 1), eul = new THREE.Euler(), q0 = new THREE.Quaternion(), qy = new THREE.Quaternion();
+function onOri(e) { if (e.alpha === null && e.beta === null) return; Gyro.has = true; Gyro.a = (e.alpha || 0) * DEG; Gyro.b = (e.beta || 0) * DEG; Gyro.g = (e.gamma || 0) * DEG; }
+function gyroApply() {
+  const orient = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * DEG;
+  eul.set(Gyro.b, Gyro.a, -Gyro.g, 'YXZ'); Gyro.q.setFromEuler(eul); Gyro.q.multiply(q1); Gyro.q.multiply(q0.setFromAxisAngle(zee, -orient));
+  if (!Gyro.cal) { eul.setFromQuaternion(Gyro.q, 'YXZ'); Gyro.off = P.yaw - eul.y; Gyro.cal = true; }
+  qy.setFromAxisAngle(new V3(0, 1, 0), Gyro.off); camera.quaternion.copy(qy).multiply(Gyro.q);
+}
+async function enableGyro() {
+  if (typeof DeviceOrientationEvent === 'undefined') { Toast.show('Бұл құрылғыда гироскоп жоқ.'); return false; }
+  if (DeviceOrientationEvent.requestPermission) {
+    try { if ((await DeviceOrientationEvent.requestPermission()) !== 'granted') { Toast.show('Гироскопқа рұқсат берілмеді.'); return false; } } catch (e) { Toast.show('Гироскопқа рұқсат алынбады.'); return false; }
+  }
+  Gyro.has = false; window.addEventListener('deviceorientation', onOri, true);
+  for (let i = 0; i < 12 && !Gyro.has; i++) await new Promise((r) => setTimeout(r, 100));
+  if (!Gyro.has) { window.removeEventListener('deviceorientation', onOri, true); Toast.show('Гироскоп деректері келмеді. Ойынды телефонда HTTPS арқылы ашыңыз.', 4000); return false; }
+  Gyro.on = true; Gyro.cal = false; return true;
+}
+function disableGyro() {
+  if (!Gyro.on) return; Gyro.on = false; window.removeEventListener('deviceorientation', onOri, true);
+  eul.setFromQuaternion(camera.quaternion, 'YXZ'); P.yaw = eul.y; P.pitch = eul.x;
+}
+
+/* ---------- қозғалыс ---------- */
+const keys = {}, joy = { id: null, x: 0, y: 0, ox: 0, oy: 0 }, vel = { x: 0, z: 0 };
+let tween = null, focus = null;
+function collide() {
+  const R = Math.hypot(P.x, P.z); if (R > 13.2) { P.x *= 13.2 / R; P.z *= 13.2 / R; }
+  for (const c of W3.colliders) { const dx = P.x - c.x, dz = P.z - c.z, d = Math.hypot(dx, dz), m = c.r + 0.3; if (d < m && d > 1e-4) { P.x = c.x + dx / d * m; P.z = c.z + dz / d * m; } }
+}
+function move(dt) {
+  if (G.mode === 'ar' || G.mode === 'camar') return;
+  if (tween) { tween.t += dt / tween.d; const k = Math.min(tween.t, 1), e = k * k * (3 - 2 * k); P.x = tween.x0 + (tween.x1 - tween.x0) * e; P.z = tween.z0 + (tween.z1 - tween.z0) * e;
+    if (!Gyro.on && !renderer.xr.isPresenting) { let dy = tween.y1 - tween.y0; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); P.yaw = tween.y0 + dy * e; P.pitch += (0 - P.pitch) * 0.1; }
+    if (k >= 1) tween = null; return; }
+  let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + joy.x, iy = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) + joy.y;
+  if (renderer.xr.isPresenting) { const s = renderer.xr.getSession(); if (s) for (const src of s.inputSources) { const gp = src.gamepad; if (!gp) continue; const a = gp.axes, sx = a[2] !== undefined ? a[2] : a[0], sy = a[3] !== undefined ? a[3] : a[1];
+    if (src.handedness === 'right') { if (Math.abs(sx) > 0.7 && !G.snap) { rig.rotation.y -= Math.sign(sx) * Math.PI / 6; G.snap = true; } else if (Math.abs(sx) < 0.3) G.snap = false; }
+    else { if (Math.abs(sx) > 0.15) ix += sx; if (Math.abs(sy) > 0.15) iy -= sy; } } }
+  const l = Math.hypot(ix, iy); if (l > 1) { ix /= l; iy /= l; }
+  const dir = camera.getWorldDirection(new V3()); let fx = dir.x, fz = dir.z; const fl = Math.hypot(fx, fz) || 1; fx /= fl; fz /= fl;
+  const sp = (keys.ShiftLeft || keys.ShiftRight ? 5.5 : 3.2), tx = (fx * iy - fz * ix) * sp, tz = (fz * iy + fx * ix) * sp;
+  vel.x += (tx - vel.x) * Math.min(1, dt * 10); vel.z += (tz - vel.z) * Math.min(1, dt * 10);
+  P.x += vel.x * dt; P.z += vel.z * dt; collide();
+}
+function goTo(id) {
+  let x, z, face;
+  if (id === 'final') { x = 0; z = 3.8; face = [0, 0]; }
+  else { const s = W3.stationById(id); const dx = -s.pos.x, dz = -s.pos.z, d = Math.hypot(dx, dz); x = s.pos.x + dx / d * 2.7; z = s.pos.z + dz / d * 2.7; face = [s.pos.x, s.pos.z]; }
+  tween = { x0: P.x, z0: P.z, x1: x, z1: z, y0: P.yaw, y1: Math.atan2(-(face[0] - x), -(face[1] - z)), t: 0, d: 0.7 };
+}
+
+/* ---------- әрекет ---------- */
+function openCase(id) {
+  if (id === 'final' && !Quiz.finalUnlocked()) { Toast.show('Алдымен тоғыз істі шешіп, фрагменттерді жинаңыз.'); return; }
+  if (!Quiz.open(id)) return;
+  closeDrawers(); Sfx.init();
+  if (use3D()) { const h = headPos(), d = camera.getWorldDirection(new V3()); d.y = 0; d.normalize(); const m = Panel3D.mesh;
+    m.position.set(h.x + d.x * 2.7, Math.max(h.y - 0.05, 1.2), h.z + d.z * 2.7); m.lookAt(h.x, m.position.y, h.z); m.visible = true; Panel3D.draw(); }
+}
+function interact() {
+  if (Quiz.active() || !focus) return;
+  if (focus.type === 'modes') openDrawer('modes'); else openCase(focus.id);
+}
+function findFocus() {
+  if (G.mode === 'ar' || G.mode === 'camar' || Quiz.active()) return null;
+  const h = headPos(), dir = camera.getWorldDirection(new V3()); dir.y = 0; dir.normalize(); let best = null, bd = 1e9;
+  const test = (x, z, r, info) => { const dx = x - h.x, dz = z - h.z, d = Math.hypot(dx, dz); if (d < r && (dx * dir.x + dz * dir.z) / (d || 1) > 0.25 && d < bd) { bd = d; best = info; } };
+  W3.stations.forEach((s) => test(s.pos.x, s.pos.z, 3.8, { type: 'case', id: s.id, name: s.cs.name }));
+  test(0, 0, 4.2, { type: 'case', id: 'final', name: 'Сөз кітабы' }); test(1.28, 3.2, 2.4, { type: 'modes', name: 'VR / AR режимдері' });
+  return best;
+}
+function pickAt(ray) {
+  const list = W3.hits.filter(visible); if (Panel3D.mesh && Panel3D.mesh.visible) list.unshift(Panel3D.mesh);
+  const hit = ray.intersectObjects(list, false)[0]; if (!hit) return null;
+  if (hit.object === Panel3D.mesh) return { panel: true, region: Panel3D.regionAt(hit.uv), dist: hit.distance };
+  return { info: hit.object.userData.interact, dist: hit.distance };
+}
+function activate(p) {
+  if (!p) return false;
+  if (p.panel) { if (p.region) { Quiz.act({ type: p.region.act, id: p.region.id }); return true; } return false; }
+  if (Quiz.active()) return false;
+  if (p.info.type === 'modes') { openDrawer('modes'); return true; }
+  const ar = G.mode === 'ar' || G.mode === 'camar';
+  if (p.dist > 6 && !ar) { goTo(p.info.id); return true; }
+  openCase(p.info.id); return true;
+}
+function tapAt(cx, cy, locked) {
+  const r = canvas.getBoundingClientRect(), v = locked ? { x: 0, y: 0 } : { x: ((cx - r.left) / r.width) * 2 - 1, y: -((cy - r.top) / r.height) * 2 + 1 };
+  raycaster.setFromCamera(v, camera); activate(pickAt(raycaster));
+}
+
+/* ---------- енгізу ---------- */
+const ptr = {};
+canvas.addEventListener('pointerdown', (e) => {
+  Sfx.init(); try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  if (G.mode === 'cardboard') { activate(gazeHit); return; }
+  const role = e.pointerType === 'touch' && e.clientX < innerWidth * 0.42 && joy.id === null ? 'move' : 'look';
+  ptr[e.pointerId] = { sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, t: performance.now(), role, moved: 0, type: e.pointerType };
+  if (role === 'move') { joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; const j = $('#joy'); j.hidden = false; j.style.left = e.clientX + 'px'; j.style.top = e.clientY + 'px'; $('#joyKnob').style.transform = 'translate(0,0)'; }
+});
+canvas.addEventListener('pointermove', (e) => {
+  const p = ptr[e.pointerId], locked = document.pointerLockElement === canvas;
+  if (locked && e.pointerType === 'mouse') { lookBy(e.movementX * 0.0022, e.movementY * 0.0022); return; }
+  if (!p) return; const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; p.moved = Math.hypot(e.clientX - p.sx, e.clientY - p.sy);
+  if (p.role === 'move') { const mx = e.clientX - joy.ox, my = e.clientY - joy.oy, l = Math.hypot(mx, my), k = l > 55 ? 55 / l : 1; joy.x = (mx * k) / 55; joy.y = (-my * k) / 55; $('#joyKnob').style.transform = `translate(${mx * k}px,${my * k}px)`; }
+  else lookBy(dx * (p.type === 'touch' ? 0.0052 : 0.0035), dy * (p.type === 'touch' ? 0.0052 : 0.0035));
+});
+function lookBy(dx, dy) {
+  if (G.mode === 'ar' || renderer.xr.isPresenting) { if (!renderer.xr.isPresenting) return; return; }
+  if (Gyro.on) { Gyro.off -= dx; return; }
+  P.yaw -= dx; P.pitch = Math.max(-1.25, Math.min(1.25, P.pitch - dy));
+}
+const endPtr = (e) => {
+  const p = ptr[e.pointerId]; if (!p) return; delete ptr[e.pointerId];
+  if (p.role === 'move') { joy.id = null; joy.x = joy.y = 0; $('#joy').hidden = true; }
+  if (p.moved < 10 && performance.now() - p.t < 380 && G.started) {
+    const locked = document.pointerLockElement === canvas; tapAt(e.clientX, e.clientY, locked);
+    if (!isTouch && !locked && !Quiz.active() && G.mode === 'hall') { try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (_) {} }
+  }
+};
+canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+window.addEventListener('keydown', (e) => {
+  if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return; keys[e.code] = true;
+  if (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'KeyF') { if (!Quiz.active()) interact(); }
+  else if (e.code === 'KeyC') toggleDrawer('cases'); else if (e.code === 'KeyM') toggleDrawer('modes');
+  else if (e.code === 'Escape') { if (Quiz.active()) Quiz.act({ type: 'close' }); else if (G.mode !== 'hall') exitMode(); else closeDrawers(); }
+  if (Quiz.active() && /^Digit[1-4]$/.test(e.code)) { const v = Quiz.view(); if (v && v.kind === 'mc' && v.items[+e.code[5] - 1]) Quiz.act({ type: 'opt', id: v.items[+e.code[5] - 1].id }); }
+});
+window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+/* ---------- қарау нүктесі (Cardboard / VR) ---------- */
+let gazeHit = null, dwellKey = '', dwellT = 0;
+const reticle = new THREE.Mesh(new THREE.RingGeometry(0.012, 0.02, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, toneMapped: false }));
+reticle.position.z = -1.4; reticle.renderOrder = 999; camera.add(reticle); reticle.visible = false;
+function gazeUpdate(dt) {
+  raycaster.setFromCamera({ x: 0, y: 0 }, camera); let p = pickAt(raycaster);
+  if (p && !p.panel && (Quiz.active() || p.dist > 7)) p = null;
+  gazeHit = p; let key = '';
+  if (p && p.panel) { Panel3D.setHover(p.region); if (p.region) key = 'r' + p.region.act + p.region.id; } else { Panel3D.setHover(null); if (p) key = 'o' + p.info.id; }
+  if (key && key === dwellKey) { dwellT += dt; if (dwellT > 1.6) { activate(p); dwellT = -1; } } else if (key !== dwellKey) { dwellKey = key; dwellT = 0; }
+  const k = Math.max(0, dwellT) / 1.6; reticle.scale.setScalar(1 + k * 1.6); reticle.material.color.set(key ? 0xffd24a : 0xffffff);
+}
+
+/* ---------- XR (VR / AR) ---------- */
+const xrCtl = [0, 1].map((i) => {
+  const c = renderer.xr.getController(i); rig.add(c);
+  const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new V3(), new V3(0, 0, -3)]), new THREE.LineBasicMaterial({ color: 0x66d0ff })); c.add(ln);
+  c.addEventListener('select', () => { const m = new THREE.Matrix4().extractRotation(c.matrixWorld); raycaster.ray.origin.setFromMatrixPosition(c.matrixWorld); raycaster.ray.direction.set(0, 0, -1).applyMatrix4(m);
+    const p = pickAt(raycaster); if (!activate(p) && G.mode === 'ar' && reticleAR.visible) { W3.anchor.position.copy(reticleAR.position); } });
+  return c;
+});
+const reticleAR = new THREE.Mesh(new THREE.RingGeometry(0.12, 0.16, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x66d0ff, toneMapped: false })); reticleAR.visible = false; reticleAR.matrixAutoUpdate = false; scene.add(reticleAR);
+let hitSource = null, hitReq = false;
+function placeAnchor() {
+  const h = headPos(), d = camera.getWorldDirection(new V3()); d.y = 0; d.normalize();
+  W3.anchor.position.set(h.x + d.x * 1.5, h.y - 0.75, h.z + d.z * 1.5); W3.anchor.scale.setScalar(0.22);
+}
+renderer.xr.addEventListener('sessionstart', () => { camera.position.y = 0; rig.position.set(P.x, 0, P.z); rig.rotation.y = P.yaw; reticle.visible = G.mode !== 'ar'; xrCtl.forEach((c) => (c.visible = G.mode === 'vr')); });
+renderer.xr.addEventListener('sessionend', () => { hitSource = null; hitReq = false; reticleAR.visible = false; if (G.mode === 'vr' || G.mode === 'ar') setMode('hall'); });
+async function enterXR(kind) {
+  if (!navigator.xr) throw new Error('no-xr');
+  const opts = kind === 'ar' ? { requiredFeatures: ['local'], optionalFeatures: ['hit-test', 'dom-overlay'], domOverlay: { root: app } } : { optionalFeatures: ['local-floor'] };
+  const s = await navigator.xr.requestSession(kind === 'ar' ? 'immersive-ar' : 'immersive-vr', opts);
+  setMode(kind, true); renderer.xr.setReferenceSpaceType(kind === 'ar' ? 'local' : 'local-floor');
+  G.domOverlay = kind === 'ar' && !!s.domOverlayState; await renderer.xr.setSession(s);
+  if (kind === 'ar') { renderer.setClearAlpha(0); setTimeout(placeAnchor, 400); }
+  if (kind === 'ar' && s.requestHitTestSource) { try { const vs = await s.requestReferenceSpace('viewer'); hitSource = await s.requestHitTestSource({ space: vs }); } catch (e) { hitSource = null; } }
+}
+
+/* ---------- Камера-AR (WebXR жоқ құрылғылар) ---------- */
+async function enterCamAR() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+  const v = $('#cam'); v.srcObject = stream; v.hidden = false; await v.play().catch(() => {}); G.stream = stream;
+  const ok = await enableGyro(); if (!ok) { stream.getTracks().forEach((t) => t.stop()); v.hidden = true; throw new Error('gyro'); }
+  setMode('camar'); renderer.setClearAlpha(0); P.x = P.z = 0; setTimeout(placeAnchor, 100);
+}
+
+/* ---------- режимдер ---------- */
+function setMode(m) {
+  const prev = G.mode; G.mode = m;
+  const ar = m === 'ar' || m === 'camar';
+  W3.setMode(ar ? 'ar' : 'hall'); renderer.setClearColor(0x040a22, ar ? 0 : 1);
+  app.classList.toggle('stereo', m === 'cardboard'); app.classList.toggle('ar', ar); $('#exitMode').hidden = m === 'hall' || m === 'vr';
+  if (m === 'cardboard') { reticle.visible = true; if (!Gyro.on) enableGyro().then((ok) => { if (!ok) Toast.show('Гироскопсыз басты саусақпен бұруға болады.'); }); const de = document.documentElement; try { de.requestFullscreen && de.requestFullscreen().then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {})).catch(() => {}); } catch (_) {} try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (_) {} }
+  else if (!renderer.xr.isPresenting) reticle.visible = false;
+  if (m === 'hall') {
+    W3.anchor.position.set(0, 0, 0); W3.anchor.scale.setScalar(1); camera.position.y = 1.65; rig.rotation.y = 0; rig.position.set(P.x, 0, P.z); camera.fov = 72; G.domOverlay = false;
+    if (G.stream) { G.stream.getTracks().forEach((t) => t.stop()); G.stream = null; $('#cam').hidden = true; }
+    if (prev === 'cardboard' || prev === 'camar') { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (_) {} }
+    if (prev === 'camar') disableGyro();
+    renderer.setSize(innerWidth, innerHeight);
+  }
+  if (Quiz.active()) Quiz.act({ type: 'close' });
+  Panel3D.mesh.visible = false; closeDrawers(); resize();
+}
+function exitMode() {
+  if (renderer.xr.isPresenting) { const s = renderer.xr.getSession(); if (s) s.end(); }
+  setMode('hall');
+}
+
+/* ---------- drawers / HUD ---------- */
+const drawers = ['cases', 'modes'];
+function openDrawer(n) { drawers.forEach((d) => ($('#' + d).hidden = d !== n)); if (n === 'cases') renderCases(); if (n === 'modes') refreshModes(); }
+function closeDrawers() { drawers.forEach((d) => ($('#' + d).hidden = true)); }
+function toggleDrawer(n) { if ($('#' + n).hidden) openDrawer(n); else closeDrawers(); }
+function renderCases() {
+  const t = Quiz.totals();
+  $('#cases-list').innerHTML = Quiz.all().map((c, i) => {
+    const done = Quiz.isDone(c.id), locked = c.id === 'final' && !Quiz.finalUnlocked(), st = Quiz.stars(c.id);
+    const sv = (n) => Array.from({ length: 3 }, (_, k) => `<svg class="star sm ${k < n ? 'on' : ''}" viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg>`).join('');
+    return `<button class="case ${done ? 'done' : ''} ${locked ? 'locked' : ''}" data-go="${c.id}" ${locked ? 'disabled' : ''}><span class="no" style="--h:${c.hue}">${c.id === 'final' ? '★' : i + 1}</span><span class="nm"><b>${esc(c.name)}</b><small>${locked ? 'Құлыптаулы: 9 фрагмент керек' : esc(c.ask)}</small></span><span class="stt">${done ? sv(st) : ''}</span></button>`;
+  }).join('') + `<p class="muted">Фрагменттер: ${t.solved} / ${t.total}</p>`;
+}
+$('#cases-list').addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (!b) return; const id = b.dataset.go; closeDrawers(); if (G.mode === 'ar' || G.mode === 'camar') openCase(id); else { goTo(id); setTimeout(() => openCase(id), 750); } });
+function updateHud() {
+  const t = Quiz.totals(); $('#hud-frag').textContent = t.solved + ' / ' + t.total; $('#hud-score').textContent = t.points; $('#hud-rank').textContent = Quiz.rank();
+  CASES.forEach((c) => W3.setState(c.id, Quiz.isDone(c.id) ? 'done' : 'open', Quiz.stars(c.id)));
+  W3.setFinal(Quiz.finalUnlocked(), Quiz.isDone('final'), Quiz.stars('final'));
+}
+function setFeat(id, ok, txt) { const b = $(id); b.disabled = !ok; b.querySelector('small').textContent = txt; }
+async function refreshModes() {
+  $('#m-gyro').classList.toggle('on', Gyro.on); $('#m-gyro small').textContent = Gyro.on ? 'Қосулы' : 'Телефонды бұрып қараңыз';
+  const has = !!navigator.xr; let vr = false, ar = false;
+  if (has) { try { vr = await navigator.xr.isSessionSupported('immersive-vr'); } catch (e) {} try { ar = await navigator.xr.isSessionSupported('immersive-ar'); } catch (e) {} }
+  setFeat('#m-vr', vr, vr ? 'WebXR: Meta Quest және т.б.' : 'WebXR VR қолжетімсіз');
+  setFeat('#m-card', true, 'Телефон + Cardboard көзілдірік');
+  const cam = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  setFeat('#m-ar', ar || cam, ar ? 'WebXR AR (кітап бөлмеңізде)' : cam ? 'Камера арқылы AR' : 'AR қолжетімсіз');
+  $('#m-sound small').textContent = Sfx.on ? 'Қосулы' : 'Өшірулі';
+}
+const fail = (e, what) => { console.warn(what, e); setMode('hall'); Toast.show(what + ' бұл құрылғыда немесе осы бетте қолжетімсіз. Ойын файлын HTTPS-хостингте ашып көріңіз.', 4600); };
+$('#modes').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[id^="m-"]'); if (!b || b.disabled) return; Sfx.init();
+  if (b.id === 'm-gyro') { if (Gyro.on) disableGyro(); else await enableGyro(); refreshModes(); }
+  else if (b.id === 'm-sound') { Sfx.toggle(); refreshModes(); }
+  else if (b.id === 'm-card') setMode('cardboard');
+  else if (b.id === 'm-vr') { try { await enterXR('vr'); } catch (er) { fail(er, 'VR'); } }
+  else if (b.id === 'm-ar') {
+    let done = false; try { if (navigator.xr && (await navigator.xr.isSessionSupported('immersive-ar'))) { await enterXR('ar'); done = true; } } catch (er) { console.warn(er); setMode('hall'); }
+    if (!done) { try { await enterCamAR(); } catch (er) { fail(er, 'AR'); } }
+  }
+});
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-open]'); if (a) { Sfx.init(); toggleDrawer(a.dataset.open); }
+  if (e.target.closest('[data-close]')) closeDrawers();
+});
+$('#exitMode').addEventListener('click', exitMode);
+$('#prompt').addEventListener('click', () => { Sfx.init(); interact(); });
+$('#fsBtn').addEventListener('click', () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {} });
+$('#startBtn').addEventListener('click', () => { Sfx.init(); G.started = true; $('#intro').hidden = true; Toast.show(isTouch ? 'Сол жақ: жүру · оң жақ: қарау · түрту: таңдау' : 'WASD: жүру · тінтуір: қарау · E: әрекет · C: істер', 4200); });
+$('#resetBtn').addEventListener('click', () => { Quiz.reset(); $('#end').hidden = true; updateHud(); renderCases(); });
+$('#againBtn').addEventListener('click', () => { $('#end').hidden = true; });
+
+Quiz.on((evt, data) => {
+  if (evt === 'ok') Sfx.ok(); else if (evt === 'bad') Sfx.bad(); else if (evt === 'tick') Sfx.tick();
+  else if (evt === 'solved') { updateHud(); Sfx.win(); const t = Quiz.totals(); if (data !== 'final') Toast.show(t.solved === t.total ? 'Барлық фрагмент жиналды! Орталықтағы кітапқа барыңыз.' : 'Кілт фрагменті табылды: ' + t.solved + ' / ' + t.total, 3800); }
+  else if (evt === 'closed') { Panel3D.mesh.visible = false; if (data === 'final') { $('#end-rank').textContent = Quiz.rank(); $('#end-score').textContent = Quiz.totals().points + ' / ' + Quiz.totals().max; $('#end').hidden = false; } }
+  if (evt === 'reset') { updateHud(); }
+  if (evt === 'change' || evt === 'ok' || evt === 'bad') { if (!Quiz.active()) { $('#quiz').hidden = true; Panel3D.mesh.visible = false; } else if (use3D()) { Panel3D.draw(); $('#quiz').hidden = true; } else QuizDom.render(); }
+});
+
+/* ---------- цикл ---------- */
+function resize() {
+  const w = innerWidth, h = innerHeight; renderer.setSize(w, h); camera.aspect = G.mode === 'cardboard' ? (w / 2) / h : w / h; camera.fov = G.mode === 'cardboard' ? 80 : (w / h < 1 ? 86 : 72); camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+const clock = new THREE.Clock(); const tmp = new V3();
+function frame(_, xrFrame) {
+  const dt = Math.min(clock.getDelta(), 0.05); G.t += dt;
+  if (!G.started && !renderer.xr.isPresenting) P.yaw += dt * 0.06;
+  move(dt);
+  if (renderer.xr.isPresenting) { rig.position.set(P.x, 0, P.z); }
+  else {
+    rig.position.set(P.x, 0, P.z);
+    if (Gyro.on) gyroApply(); else camera.rotation.set(P.pitch, P.yaw, 0, 'YXZ');
+    if (G.mode === 'ar' || G.mode === 'camar') rig.position.set(0, 0, 0);
+  }
+  W3.update(dt, G.t, camera);
+  if (G.mode === 'hall') { focus = findFocus(); const pr = $('#prompt'); pr.hidden = !focus || !G.started; if (focus) pr.textContent = (isTouch ? '' : '[E]  ') + (focus.type === 'modes' ? 'VR / AR режимдері' : 'Ашу: ' + focus.name); } else if (!$('#prompt').hidden) $('#prompt').hidden = true;
+  if (use3D() || G.mode === 'vr') gazeUpdate(dt); else { gazeHit = null; }
+  if (xrFrame && hitSource && G.mode === 'ar') { const r = xrFrame.getHitTestResults(hitSource); const refSpace = renderer.xr.getReferenceSpace(); if (r.length) { const pose = r[0].getPose(refSpace); if (pose) { reticleAR.visible = true; reticleAR.matrix.fromArray(pose.transform.matrix); reticleAR.matrix.decompose(reticleAR.position, reticleAR.quaternion, reticleAR.scale); reticleAR.updateMatrix(); } } else reticleAR.visible = false; }
+  if (G.mode === 'cardboard' && !renderer.xr.isPresenting) {
+    camera.updateMatrixWorld(); stereoCam.aspect = 1; stereoCam.update(camera);
+    const s = renderer.getSize(new THREE.Vector2()); renderer.setScissorTest(true);
+    renderer.setViewport(0, 0, s.x / 2, s.y); renderer.setScissor(0, 0, s.x / 2, s.y); renderer.render(scene, stereoCam.cameraL);
+    renderer.setViewport(s.x / 2, 0, s.x / 2, s.y); renderer.setScissor(s.x / 2, 0, s.x / 2, s.y); renderer.render(scene, stereoCam.cameraR);
+    renderer.setScissorTest(false);
+  } else renderer.render(scene, camera);
+}
+
+/* ---------- іске қосу ---------- */
+async function boot() {
+  try { await Promise.race([Promise.all([document.fonts.load('700 40px "Exo 2"'), document.fonts.load('500 30px "Manrope"'), document.fonts.load('700 40px "Exo 2"', 'әғқңөұүһі')]), new Promise((r) => setTimeout(r, 2500))]); } catch (e) {}
+  W3 = buildWorld(scene); scene.add(Panel3D.build()); Panel3D.mesh.visible = false;
+  resize(); updateHud(); renderCases(); refreshModes();
+  $('#loading').hidden = true; renderer.setAnimationLoop(frame);
+  window.__szk = { G, P, Quiz, W3, openCase, goTo, setMode, camera, scene, renderer, Panel3D, interact, activate };
+}
+boot().catch((e) => { console.error(e); $('#loading').textContent = 'Қате: ' + e.message; });
+
+document.getElementById('story').textContent = STORY;</script>
+</body></html>
